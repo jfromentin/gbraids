@@ -82,7 +82,7 @@ int main(int argc,char** argv){
 	usleep(10000);
       }while(server.has_unfinished_tasks());
       size_t n=0;
-      string filename="data/"+to_string(l)+".csv";
+      string filename=DATA_DIR+to_string(l)+".csv";
       fstream fcsv;
       fcsv.open(filename.c_str(),ios::out);
       for(size_t i=0;i<nb_tasks;++i){

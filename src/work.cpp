@@ -5,7 +5,7 @@ size_t work(int l,Permutation& P,int a){
   fstream fin[STRANDS];
   size_t size[STRANDS];
   string filenameout;
-  filenameout="data/"+to_string(l)+to_string(P)+to_string(a);
+  filenameout=DATA_DIR+to_string(l)+to_string(P)+to_string(a);
   fstream fileout;
   set<Braid> all;
   string line;
@@ -14,10 +14,10 @@ size_t work(int l,Permutation& P,int a){
     if(i!=0){
       Permutation Q=P*abs(i);
       int b=a+(i<0?1:-1);
-      string filename="data/"+to_string(l-1)+to_string(Q)+to_string(b);
+      string filename=DATA_DIR+to_string(l-1)+to_string(Q)+to_string(b);
       fstream filesrc;
       filesrc.open(filename.c_str(),ios::in);
-      filename="data/"+to_string(l-2)+to_string(P)+to_string(a);
+      filename=DATA_DIR+to_string(l-2)+to_string(P)+to_string(a);
       fstream filecomp;
       filecomp.open(filename.c_str(),ios::in);
       if(filecomp.is_open()){
