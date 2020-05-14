@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include "braid.hpp"
+#include "signature.hpp"
 
 using namespace std;
 

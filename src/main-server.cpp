@@ -1,38 +1,12 @@
+#include <set>
 #include "tclap/CmdLine.h"
 #include "config.hpp"
 #include "../dist/server.hpp"
 #include "init.hpp"
+#include "work.hpp"
+#include "gtask.hpp"
+
 using namespace std;
-
-static const string even_permutations[]={"abcd","acdb","adbc","badc","bcad","bdca",
-					 "cabd","cbda","cdab","dacb","dbac","dcba"};
-static const string  odd_permutations[]={"abdc","acbd","adcb","bacd","bcda","bdac",
-					 "cadb","cbad","cdba","dabc","dbca","dcab"};
-
-struct TaskInput{
-  char p[4];
-  int l;
-  int a;
-};
-
-void generate_tasks(int l,Task* tasks){
-  TaskInput input;
-  size_t t=0;
-  string* perms=(l%2==0)?(string*)even_permutations:(string*)odd_permutations;
-  for(size_t i=0;i<12;++i){
-    for(int a=-(int)l;a<=(int)l;a+=2){
-      input.p[0]=perms[i][0];
-      input.p[1]=perms[i][1];
-      input.p[2]=perms[i][2];
-      input.p[3]=perms[i][3];
-      input.l=l;
-      input.a=a;
-      tasks[t].set_input((char*)&input,sizeof(TaskInput));
-      tasks[t].set_statut(Task::Unaffected);
-      ++t;
-    }
-  } 
-}
 
 int main(int argc,char** argv){
   int l;
@@ -56,48 +30,61 @@ int main(int argc,char** argv){
     cerr<<"[Error] Can not open socket"<<endl;
     exit(-1);
   }
-  cout<<"*******************"<<endl;
-  cout<<"* Genbraid server *"<<endl;
-  cout<<"*******************"<<endl;
+  cout<<"*************************"<<endl;
+  cout<<"* Geodesic braid server *"<<endl;
+  cout<<"*************************"<<endl;
   Task* tasks=nullptr;
-  size_t nb_tasks=0;
   Server server(MAX_CLIENTS,SERVER_PORT);
-  while(true){
-    if(l==1) init();
-    else{
-      cout<<"ici"<<endl;
-      nb_tasks=12*(l+1);
-      if(tasks!=nullptr) delete[] tasks;
-      tasks=new Task[nb_tasks];
-      generate_tasks(l,tasks);
-      server.set_tasks(tasks,nb_tasks);
-      cout<<"----------------------------------------"<<endl;
-      cout<<" Length = "<<l<<endl;
-      cout<<" Number of tasks = "<<nb_tasks<<endl;
-      do{
-	server.listen_for_new_clients();
-	server.listen_clients();
-	server.treat_messages();
-	server.affect_tasks();
-	usleep(10000);
-      }while(server.has_unfinished_tasks());
-      size_t n=0;
-      string filename=DATA_DIR+to_string(l)+".csv";
-      fstream fcsv;
-      fcsv.open(filename.c_str(),ios::out);
-      for(size_t i=0;i<nb_tasks;++i){
-	size_t output;
-	TaskInput input;
-	memcpy(&output,tasks[i].get_output(),sizeof(size_t));
-	memcpy(&input,tasks[i].get_input(),sizeof(TaskInput));
-	n+=output;
-	if(output>0){
-	  fcsv<<input.l<<','<<input.p[0]<<input.p[1]<<input.p[2]<<input.p[3]<<','<<input.a<<','<<output<<endl;
-	}
-      }
-      fcsv.close();
-      cout<<" Number of braids : "<<n<<endl;
-    }
+  set<Signature> prec,cur;
+  if(l==1){
+    init();
     ++l;
   }
+  load(l-1,prec);
+  fstream file_bilan;
+  file_bilan.open(DATA_DIR+"bilan.csv",ios::out);
+  file_bilan<<"length,braids,tasks,duration"<<endl;
+  size_t total_duration=0;
+  while(true){
+    size_t duration=0;
+    cur.clear();
+    cout<<"---------------------------"<<endl;
+    cout<<"Length : "<<(int)l<<endl;
+    next_signatures(prec,cur);
+    Task* tasks=generate_gtask(cur);
+    size_t nb_tasks=cur.size();
+    cout<<"Number of tasks : "<<nb_tasks<<endl;
+    server.set_tasks(tasks,nb_tasks);
+    do{
+      server.listen_for_new_clients();
+      server.listen_clients();
+      server.treat_messages();
+      server.affect_tasks();
+      usleep(10000);
+    }while(server.has_unfinished_tasks());
+    fstream file;
+    file.open(DATA_DIR+to_string((int)l)+".csv",ios::out);
+    size_t n=0;
+    file<<"length,permutation,e12,e23,e34,rank,number"<<endl;
+    for(size_t i=0;i<nb_tasks;++i){
+      GTaskOutput& output=*((GTaskOutput*)tasks[i].get_output());
+      GTaskInput& input=*((GTaskInput*)tasks[i].get_input());
+      size_t number=output.number;
+      duration+=output.duration;
+      if(number!=0){
+	int rank=input.signature.get_rank();
+	n+=(number*rank);
+      	file<<input.signature.csv()<<","<<rank<<","<<number<<endl;
+      }
+    }
+    file.close();
+    file_bilan<<l<<','<<n<<','<<nb_tasks<<','<<(double)duration/(1000*1000)<<endl;
+    cout<<"Number of braids : "<<n<<endl;
+    cout<<"Duration : "<<(double)duration/(1000*1000)<<endl;
+    total_duration+=duration;
+    ++l;
+    swap(cur,prec);
+  }
+  file_bilan.close();
+  cout<<"Total duarion : "<<(double)total_duration/(1000*1000)<<endl;
 }

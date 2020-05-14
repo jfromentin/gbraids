@@ -1,67 +1,96 @@
- #include "work.hpp"
+#include "work.hpp"
 
-size_t work(int l,Permutation& P,int a){
-  char r;
-  fstream fin[STRANDS];
-  size_t size[STRANDS];
-  string filenameout;
-  filenameout=DATA_DIR+to_string(l)+to_string(P)+to_string(a);
-  fstream fileout;
-  set<Braid> all;
-  string line;
+void
+output(const Signature& s,const SetBraid& braids){
+  string filename=s.filename();
+  fstream file;
+  char l=s.get_l();
+  file.open(DATA_DIR+filename.c_str(),ios::out|ios::app);
+  for(auto it=braids.begin();it!=braids.end();++it){
+    if(it->length()==l){
+      it->write(file);
+    }
+  }
+  file.close();
+}
+
+
+size_t
+work(const Signature& s_out){
+  Signature s_cmp=s_out.comparison();
+
+  size_t sc=number(s_cmp);
+  if(sc>=SPLIT) return work_split(s_out);
+  
+  SetBraid cmp;
+  load(s_cmp,cmp);
   size_t n=0;
-  for(int i=-STRANDS+1;i<STRANDS;++i){
+    for(char i=-NBGENS;i<=NBGENS;++i){
     if(i!=0){
-      Permutation Q=P*abs(i);
-      int b=a+(i<0?1:-1);
-      string filename=DATA_DIR+to_string(l-1)+to_string(Q)+to_string(b);
-      fstream filesrc;
-      filesrc.open(filename.c_str(),ios::in);
-      filename=DATA_DIR+to_string(l-2)+to_string(P)+to_string(a);
-      fstream filecomp;
-      filecomp.open(filename.c_str(),ios::in);
-      if(filecomp.is_open()){
-	if(l==2){
-	  Braid b;
-	  all.insert(b);
-	}
-	else{
-	  size_t bsize=(l-3)/3+1;
-	  char buffer[bsize];
-	  while(true){
-	    filecomp.read(buffer,bsize);
-	    if(filecomp.gcount()==0) break;
-	    Braid b(buffer,l-2);
-	    all.insert(b);
-	  }
-	}
-	filecomp.close();
-      }
-      if(filesrc.is_open()){
-	size_t bsize=(l-2)/3+1;
-	char buffer[bsize];
-	while(true){
-	  filesrc.read(buffer,bsize);
-	  if(filesrc.gcount()==0) break;
-	  Braid b(buffer,l-1);
-	  if(b.can_freely_add(i)){
-	    Braid c=b*i;
-	    auto res=all.insert(c);
-	    if(res.second) ++n;
-	  }
-	}
-	filesrc.close();
+      Signature s_src=s_out.father(i);
+      VectorBraid src;
+      load(s_src,src);
+      size_t nsrc=src.size();
+      for(size_t k=0;k<nsrc;++k){
+	Braid b=src[k];
+	b*=i;
+	auto p_ins=cmp.insert(b);
+	if(p_ins.second) ++n;
       }
     }
   }
-  if(n>0){
-    fileout.open(filenameout.c_str(),ios::out);
-    for(auto it=all.begin();it!=all.end();++it){
-      if(it->l==l){
-	it->write(fileout);
+  if(n!=0) output(s_out,cmp);
+  return n;
+}
+
+void
+invariants(const Signature& s_out,set<Invariant>& invs){
+  for(char i=-NBGENS;i<=NBGENS;++i){
+    if(i!=0){
+      Signature s_src=s_out.father(i);
+      SetBraid src;
+      load(s_src,src);
+      for(auto it=src.begin();it!=src.end();++it){
+        Braid b=*it;
+	b*=i;
+	invs.insert(b.invariant());
       }
     }
-    if(fopen) fileout.close();
   }
-  return n;		      
+}
+
+size_t
+work_split(const Signature& s_out){
+  set<Invariant> invs;
+  invariants(s_out,invs);
+  Signature s_cmp=s_out.comparison();
+  size_t n=0;
+  size_t m=0;
+  for(auto it_inv=invs.begin();it_inv!=invs.end();++it_inv){
+    Invariant inv=*it_inv;
+    SetBraid cmp;
+    load(s_cmp,cmp,&inv);
+    size_t nt=0;
+    for(char i=-NBGENS;i<=NBGENS;++i){
+      if(i!=0){
+	Signature s_src=s_out.father(i);
+	Invariant inv_src=inv.father(s_src.get_p(),i);
+	VectorBraid src;
+	load(s_src,src,&inv_src);
+	size_t nsrc=src.size();
+	for(size_t k=0;k<nsrc;++k){
+	  Braid b=src[k];
+	  b*=i;
+	  if(b.invariant()==*it_inv){
+	    auto p_ins=cmp.insert(b);
+	    if(p_ins.second) ++nt;
+	  }
+	}
+      }
+    }
+    if(nt!=0) output(s_out,cmp);
+    n+=nt;
+    m=max(m,nt);
+  }
+  return n;
 }

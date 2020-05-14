@@ -1,12 +1,13 @@
 #ifndef TASK_HPP
 #define TASK_HPP
-
+#include <cassert>
+#include <cstring>
 
 class Task{
 public:
   struct Data;
   enum Statut{Undefined,Unaffected,Affected,Done};
-private:
+protected:
   char *input,*output;
   size_t input_size,output_size;
   Statut statut;
