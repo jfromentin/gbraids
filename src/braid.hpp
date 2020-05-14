@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
-#include <immintrin.h>
 #include "config.hpp"
 #include "memory.hpp"
 #include "permutation.hpp"
@@ -15,10 +14,7 @@ using uchar=unsigned char;
 using Int=int64_t;
 
 extern Int amplitude;
-static __m256i avx_STRANDS=_mm256_set1_epi8(STRANDS);
-static __m256i avx0=_mm256_set1_epi8(0);
-static __m256i avxm1=_mm256_set1_epi8(-1);
-static __m256i avx6=_mm256_set1_epi8(6);
+
 class Invariant{
 public:
   union{
@@ -36,22 +32,21 @@ public:
 
 ostream& operator<<(ostream& os,const Invariant& inv);
 
-struct alignas(32) epi8{
-  union{
-    char tab[32];
-    __m256i avx;
-  };
-};
-
-class alignas(32) Braid{
+class Braid{
 private:
-  epi8 data;
+  union{
+    struct{
+      char tab[32];
+    };
+    struct{
+      uint64_t tab64[4];
+    };
+  }; 
   size_t len;
- 
   static void Dynnikov_action(char i,Int* a,Int* b);
   static void positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2);
   static void negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2);
- public:
+public:
   static uchar code(char c);
   static char decode(uchar c);
   Braid();
@@ -88,13 +83,19 @@ Braid::decode(uchar c){
 
 inline
 Braid::Braid(){
-  data.avx=_mm256_setzero_si256();
+  tab64[0]=0;
+  tab64[1]=0;
+  tab64[2]=0;
+  tab64[3]=0;
   len=0;
 }
 
 inline
 Braid::Braid(const Braid& b){
-  data.avx=b.data.avx;
+  tab64[0]=b.tab64[0];
+  tab64[1]=b.tab64[1];
+  tab64[2]=b.tab64[2];
+  tab64[3]=b.tab64[3];
   len=b.len;
 }
 
@@ -104,7 +105,10 @@ Braid::~Braid(){
 
 inline Braid&
 Braid::operator=(const Braid& b){
-  data.avx=b.data.avx;
+  tab64[0]=b.tab64[0];
+  tab64[1]=b.tab64[1];
+  tab64[2]=b.tab64[2];
+  tab64[3]=b.tab64[3];
   len=b.len;
   return *this;
 }
@@ -116,21 +120,21 @@ Braid::length() const{
 
 inline void
 Braid::operator*=(char i){
-  data.tab[len++]=i;
+  tab[len++]=i;
 }
 
 
 inline void
 Braid::negate(){
-  __m256i zero;
-  zero=_mm256_xor_si256(zero,zero);
-  data.avx=_mm256_sub_epi8(zero,data.avx);
+  for(size_t i=0;i<len;++i) tab[i]*=-1;
 }
 
 inline void
 Braid::phi(){
-  __m256i tmp=_mm256_sign_epi8(avx_STRANDS,data.avx);
-  data.avx=_mm256_sub_epi8(tmp,data.avx);
+  for(size_t i=0;i<len;++i){
+    char v=tab[i];
+    tab[i]=(v<0)?-STRANDS-v:STRANDS-v;
+  }
 }
 
 inline bool

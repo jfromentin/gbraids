@@ -1,9 +1,9 @@
-EXE_W	= gb-worker
-EXE_S 	= gb-server
-EXE_I 	= gb-interface
-EXE_A   = gb-alone
-CPP 	= g++ 
-CFLAGS	= -mavx2 --std=c++11 -O3 -DNDEBUG -I ./tclap/include
+EXE_W		= gb-worker
+EXE_S 		= gb-server
+EXE_I 		= gb-interface
+EXE_A   	= gb-alone
+CPP 		= g++ 
+CFLAGS		= --std=c++11 -O3 -DNDEBUG -I ./tclap/include
 
 all: $(EXE_S) $(EXE_W) $(EXE_I) $(EXE_A)
 
@@ -46,5 +46,6 @@ $(EXE_I):dist/message.o dist/client.o dist/interface.o src/main-interface.cpp
 $(EXE_A):src/init.o src/braid.o src/signature.o src/work.o src/main-alone.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 
+
 clean:
-	$(RM) $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A) data/* dist/*.o dist/*~ src/*.o src/*~
+	$(RM) $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A)  data/* dist/*.o dist/*~ src/*.o src/*~

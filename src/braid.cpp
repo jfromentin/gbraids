@@ -29,9 +29,9 @@ Braid::Braid(char* buffer,size_t l){
   size_t j=0;
   while(i<l){
     uchar c=buffer[j++];
-    data.tab[i++]=decode(c%6);
-    data.tab[i++]=decode((c%36)/6);
-    data.tab[i++]=decode(c/36); 
+    tab[i++]=decode(c%6);
+    tab[i++]=decode((c%36)/6);
+    tab[i++]=decode(c/36); 
   }
   len=l;
 }
@@ -43,9 +43,9 @@ Braid::write(fstream& file) const{
   size_t i=0;
   size_t k=0;
   while(i<len){
-    uchar c=code(data.tab[i++]);
-    if(i<len) c+=(code(data.tab[i++])*6);
-    if(i<len) c+=(code(data.tab[i++])*36);
+    uchar c=code(tab[i++]);
+    if(i<len) c+=(code(tab[i++])*6);
+    if(i<len) c+=(code(tab[i++])*36);
     buffer[k++]=c;
   }
   file.write(buffer,size);
@@ -61,11 +61,6 @@ void Braid::positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
   y1=r2;
   x2=r3;
   y2=r4;
-  /* amplitude=max(amplitude,abs(t));
-  amplitude=max(amplitude,abs(r1));
-  amplitude=max(amplitude,abs(r2));
-  amplitude=max(amplitude,abs(r3));
-  amplitude=max(amplitude,abs(r4));*/
 }
 
 void Braid::negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
@@ -78,11 +73,6 @@ void Braid::negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
   y1=r2;
   x2=r3;
   y2=r4;
-  /*  amplitude=max(amplitude,abs(t));
-  amplitude=max(amplitude,abs(r1));
-  amplitude=max(amplitude,abs(r2));
-  amplitude=max(amplitude,abs(r3));
-  amplitude=max(amplitude,abs(r4));*/
 }
 
 int
@@ -91,8 +81,8 @@ Braid::cmp(const Braid& braid) const{
   Int b[4];
   a[0]=a[1]=a[2]=a[3]=0;
   b[0]=b[1]=b[2]=b[3]=1;
-  for(size_t i=0;i<len;++i) Dynnikov_action(-data.tab[len-i-1],a,b);
-  for(size_t i=0;i<braid.len;++i) Dynnikov_action(braid.data.tab[i],a,b);
+  for(size_t i=0;i<len;++i) Dynnikov_action(-tab[len-i-1],a,b);
+  for(size_t i=0;i<braid.len;++i) Dynnikov_action(braid.tab[i],a,b);
   for(size_t i=0;i<4;++i){
     if(a[i]<0) return 1;
     if(a[i]>0) return -1;
@@ -109,7 +99,7 @@ Braid::invariant(){
   char p=0;
   size_t k;
   while(k<len){
-    char i=data.tab[k];
+    char i=tab[k];
     char ai,e;
     if(i<0){
       ai=-i;
@@ -141,7 +131,7 @@ ostream&
 operator<<(ostream& os,const Braid& b){
   if(b.len==0) return os<<'1';
   for(size_t i=0;i<b.len;++i){
-    char c=b.data.tab[i];
+    char c=b.tab[i];
     if(c>0) os<<char(c-1+'a');
     else os<<char(-c-1+'A');
   }

@@ -3,13 +3,12 @@
 
 #include <set>
 #include <vector>
-#include <boost/align/aligned_allocator.hpp>
 #include "braid.hpp"
 
 using namespace std;
 
-using SetBraid=set<Braid,std::less<Braid>,boost::alignment::aligned_allocator<Braid>>;
-using VectorBraid=vector<Braid,boost::alignment::aligned_allocator<Braid>>;
+using SetBraid=set<Braid>;
+using VectorBraid=vector<Braid>;
 
 template<class T> ostream& operator<<(ostream& os,const set<T>& s);
 
