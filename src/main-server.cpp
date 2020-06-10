@@ -35,7 +35,7 @@ int main(int argc,char** argv){
   cout<<"*************************"<<endl;
   Task* tasks=nullptr;
   Server server(MAX_CLIENTS,SERVER_PORT);
-  set<Signature> prec,cur;
+  set<Signature<Artin>> prec,cur;
   if(l==1){
     init();
     ++l;
@@ -65,26 +65,24 @@ int main(int argc,char** argv){
     fstream file;
     file.open(DATA_DIR+to_string((int)l)+".csv",ios::out);
     size_t n=0;
+    size_t nb=0;
     file<<"length,permutation,e12,e23,e34,rank,number"<<endl;
     for(size_t i=0;i<nb_tasks;++i){
       GTaskOutput& output=*((GTaskOutput*)tasks[i].get_output());
       GTaskInput& input=*((GTaskInput*)tasks[i].get_input());
       size_t number=output.number;
-      duration+=output.duration;
       if(number!=0){
-	int rank=input.signature.get_rank();
+	int rank=input.signature.rank();
 	n+=(number*rank);
+	nb+=number;
       	file<<input.signature.csv()<<","<<rank<<","<<number<<endl;
       }
     }
     file.close();
-    file_bilan<<l<<','<<n<<','<<nb_tasks<<','<<(double)duration/(1000*1000)<<endl;
+    file_bilan<<l<<','<<nb<<','<<n<<','<<nb_tasks<<endl;
     cout<<"Number of braids : "<<n<<endl;
-    cout<<"Duration : "<<(double)duration/(1000*1000)<<endl;
-    total_duration+=duration;
     ++l;
     swap(cur,prec);
   }
   file_bilan.close();
-  cout<<"Total duarion : "<<(double)total_duration/(1000*1000)<<endl;
 }

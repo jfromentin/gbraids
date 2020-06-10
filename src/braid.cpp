@@ -1,27 +1,47 @@
+/*
+* This file is part of Gbraids (https://github.com/jfromentin/gbraids).
+* Copyright (c) 2020 Jean Fromentin (fromentin@math.cnrs.fr).
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "braid.hpp"
 
 Int amplitude=0;
 
-Invariant
-Invariant::father(char p,char i) const{
-  char ai,e;
-  if(i<0){
-    ai=-i;e=-1;
-  }
-  else{
-    ai=i;e=1;
-  }
-  char r=eval_inv(p,ai);
-  char s=eval_inv(p,ai+1);
-  Invariant res;
-  res.e13=e13;
-  res.e24=e24;
-  res.e14=e14;
-  if(r>s) swap(r,s);
-  if(r==1 and s==3) res.e13-=e;
-  else if(r==2 and s==4) res.e24-=e;
-  else if(r==1 and s==4) res.e14-=e;
-  return res;
+
+void positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
+  Int t=x1-neg(y1)-x2+pos(y2);
+  Int r1=x1+pos(y1)+pos(pos(y2)-t);
+  Int r2=y2-pos(t);
+  Int r3=x2+neg(y2)+neg(neg(y1)+t);
+  Int r4=y1+pos(t);
+  x1=r1;
+  y1=r2;
+  x2=r3;
+  y2=r4;
+}
+
+void negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
+  Int t=x1+neg(y1)-x2-pos(y2);
+  Int r1=x1-pos(y1)-pos(pos(y2)+t);
+  Int r2=y2+neg(t);
+  Int r3=x2-neg(y2)-neg(neg(y1)-t);
+  Int r4=y1-neg(t);
+  x1=r1;
+  y1=r2;
+  x2=r3;
+  y2=r4;
 }
 
 Braid::Braid(char* buffer,size_t l){
@@ -51,30 +71,6 @@ Braid::write(fstream& file) const{
   file.write(buffer,size);
 }
 
-void Braid::positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
-  Int t=x1-neg(y1)-x2+pos(y2);
-  Int r1=x1+pos(y1)+pos(pos(y2)-t);
-  Int r2=y2-pos(t);
-  Int r3=x2+neg(y2)+neg(neg(y1)+t);
-  Int r4=y1+pos(t);
-  x1=r1;
-  y1=r2;
-  x2=r3;
-  y2=r4;
-}
-
-void Braid::negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
-  Int t=x1+neg(y1)-x2-pos(y2);
-  Int r1=x1-pos(y1)-pos(pos(y2)+t);
-  Int r2=y2+neg(t);
-  Int r3=x2-neg(y2)-neg(neg(y1)-t);
-  Int r4=y1-neg(t);
-  x1=r1;
-  y1=r2;
-  x2=r3;
-  y2=r4;
-}
-
 int
 Braid::cmp(const Braid& braid) const{
   Int a[4];
@@ -88,43 +84,6 @@ Braid::cmp(const Braid& braid) const{
     if(a[i]>0) return -1;
   }
   return 0;
-}
-
-Invariant
-Braid::invariant(){
-  Invariant res;
-  res.e13=0;
-  res.e24=0;
-  res.e14=0;
-  char p=0;
-  size_t k;
-  while(k<len){
-    char i=tab[k];
-    char ai,e;
-    if(i<0){
-      ai=-i;
-      e=-1;
-    }
-    else{
-      ai=i;
-      e=1;
-    }
-    char r=eval_inv(p,ai);
-    char s=eval_inv(p,ai+1);
-    if(r>s) swap(r,s);
-    if(r==1 and s==3) res.e13+=e;
-    else if(r==2 and s==4) res.e24+=e;
-    else if(r==1 and s==4) res.e14+=e;
-    p=left_prod[ai][p];
-    ++k;
-  }
-  return res;
-}
-
-void
-Braid::disp_letter(int v){
-  if(v>0) cout<<char('a'+v-1);
-  else cout<<char('A'-v-1);
 }
 
 ostream&

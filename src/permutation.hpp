@@ -1,47 +1,159 @@
+/*
+* This file is part of Gbraids (https://github.com/jfromentin/gbraids).
+* Copyright (c) 2020 Jean Fromentin (fromentin@math.cnrs.fr).
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef PERMUTATION_HPP
 #define PERMUTATION_HPP
 
 #include <iostream>
-#include "config.hpp"
 
 using namespace std;
 
-static const string permutations[24] = {
-  "abcd","abdc","acbd","acdb","adbc","adcb",
-  "bacd","badc","bcad","bcda","bdac","bdca",
-  "cabd","cadb","cbad","cbda","cdab","cdba",
-  "dabc","dacb","dbac","dbca","dcab","dcba"};
+//*********************
+//* Class Permutation *
+//*********************
 
-static const string inverse[24] = {
-  "abcd","abdc","acbd","adbc","acdb","adcb",
-  "bacd","badc","cabd","dabc","cadb","dacb",
-  "bcad","bdac","cbad","dbac","cdab","dcab",
-  "bcda","bdca","cbda","dbca","cdba","dcba"};
+//! A class for permutation of S4
+//! - tab[i] is the image of i by the permutation.
+//! - data contains the whole array tab
+//! By convention tab[0] is 0.
 
-static const char phi_image[24] = {0,6,2,12,8,14,1,7,4,18,10,20,3,13,5,19,16,22,9,15,11,21,17,23};
+class Permutation{
+private:
+  union{
+    struct{
+      char tab[5];
+    };
+    size_t data;
+  };
+public:
+  //! Create identity permutation
+  Permutation();
+  
+  //! Create a permutation from a char
+  //! \param p a char containing tab[1]*1000+tab[2]*100+tab[3]*10+tab[4]
+  Permutation(int p);
+  
+  //! Create a permutation from char
+  //! \param p1 is for tab[1]
+  //! \param p2 is for tab[2]
+  //! \param p3 is for tab[3]
+  //! \param p4 is for tab[4]
+  Permutation(char p1,char p2,char p3,char p4);
+  
+  //! Multiply the current permutation on the right by s_i=(i i+1)
+  //! \param i a char in {1,2,3}
+  Permutation operator*(char i) const;
+  
+  //! The less operator
+  //! \param p a permutation to compare with
+  bool operator<(const Permutation& p) const;
+  
+  //! Not equal operator
+  //! \param p a permutation to compare with
+  bool operator!=(const Permutation& p) const;
+  
+  //! Evaluation operator
+  //! \param i a char in {1,2,3}
+  //! Return permutation(i)
+  char operator()(char i) const;
+  
+  //! Return the image of permutation under the action of phi,
+  //! which transform s_{i} in s_{n-i}
+  Permutation phi() const;
+  
+  //! Return a string of the window view of the permutation
+  string to_string() const;
+};
 
-static const char s1 = 6;
+//********************
+//* Inline functions *
+//********************
 
-static const char left_prod_s1[24] = {6,7,8,9,10,11,0,1,2,3,4,5,14,15,12,13,17,16,20,21,18,19,23,22};
-
-static const char s2 = 2;
-
-static const char left_prod_s2[24] = {2,3,0,1,5,4,12,13,14,15,16,17,6,7,8,9,10,11,19,18,22,23,20,21};
-
-static const char s3 = 1;
-
-static const char left_prod_s3[24] = {1,0,4,5,2,3,7,6,10,11,8,9,18,19,20,21,22,23,12,13,14,15,16,17};
-
-static const char * left_prod[4]={nullptr,left_prod_s1,left_prod_s2,left_prod_s3};
-
-char eval(char p,char i);
-
-inline char eval(char p,char i){
-  return permutations[p][i-1]-'a'+1;
+inline
+Permutation::Permutation(){
+  data=0;
+  for(size_t i=0;i<=4;++i) tab[i]=i;
 }
 
-inline char eval_inv(char p,char i){
-  return inverse[p][i-1]-'a'+1;
+inline
+Permutation::Permutation(char a,char b,char c,char d){
+  data=0;
+  tab[0]=0;
+  tab[1]=a;
+  tab[2]=b;
+  tab[3]=c;
+  tab[4]=d;
+}
+
+inline
+Permutation::Permutation(int p){
+  data=0;
+  tab[0]=0;
+  tab[4]=p%10;
+  p=p/10;
+  tab[3]=p%10;
+  p=p/10;
+  tab[2]=p%10;
+  p=p/10;
+  tab[1]=p%10;
+}
+
+inline Permutation
+Permutation::operator*(char i) const{
+  Permutation res;
+  res.data=data;
+  swap(res.tab[i],res.tab[i+1]);
+  return res;
+}
+
+inline bool
+Permutation::operator<(const Permutation& p) const{
+  return data<p.data;
+}
+
+inline bool
+Permutation::operator!=(const Permutation& p) const{
+  return data!=p.data;
+}
+
+inline char
+Permutation::operator()(char i) const{
+  return tab[i];
+}
+
+inline Permutation
+Permutation::phi() const{
+  Permutation res;
+  res.tab[0]=0;
+  res.tab[1]=5-tab[4];
+  res.tab[2]=5-tab[3];
+  res.tab[3]=5-tab[2];
+  res.tab[4]=5-tab[1];
+  return res;
+}
+
+inline string
+Permutation::to_string() const{
+  string str;
+  str+=char('0'+tab[1]);
+  str+=char('0'+tab[2]);
+  str+=char('0'+tab[3]);
+  str+=char('0'+tab[4]);
+  return str;
 }
 
 #endif

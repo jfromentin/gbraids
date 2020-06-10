@@ -1,6 +1,63 @@
+/* 
+ * This file is part of Gbraids (https://github.com/jfromentin/gbraids).
+ * Copyright (c) 2020 Jean Fromentin (fromentin@math.cnrs.fr).
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "signature.hpp"
 
-char get_value(string str,size_t& pos){
+//*************************
+//* Not inlined functions *
+//*************************
+
+//---------------
+// SignatureData
+//---------------
+
+SignatureData::SignatureData(char l,Permutation p,char e1,char e2,char e3,char e4){
+  length=l;
+  permutation=p;
+  e[0]=e1;
+  e[1]=e2;
+  e[2]=e3;
+  e[3]=e4;
+}
+
+SignatureData::SignatureData(string line){
+  size_t pos=0;
+  length=get_value(line,pos);
+  int p=get_value(line,pos);
+  permutation=p;
+  for(size_t k=0;k<4;++k){
+    e[k]=get_value(line,pos);
+  }
+}
+
+string
+SignatureData::display(char sep) const{
+  string res=to_string(length);
+  res+=sep;
+  res+=permutation.to_string();
+  for(size_t k=0;k<4;++k){
+    res+=sep;
+    res+=to_string(e[k]);
+  }
+  return res;
+}
+
+int
+SignatureData::get_value(string str,size_t& pos){
   string res="";
   while(pos!=str.size() and str[pos]!=','){
     res+=str[pos++];
@@ -9,130 +66,177 @@ char get_value(string str,size_t& pos){
   return stoi(res);
 }
 
-Signature::Signature(string line){
-  size_t pos=0;
-  l=get_value(line,pos);
-  p=get_value(line,pos);
-  e12=get_value(line,pos);
-  e23=get_value(line,pos);
-  e34=get_value(line,pos);
+// Two Signatures are equal if all its values are
+bool
+SignatureData::operator==(const SignatureData& s) const{
+  if(length!=s.length) return false;
+  if(permutation!=s.permutation) return false;
+  for(size_t k=0;k<4;++k){
+    if(e[k]!=s.e[k]) return false;
+  }
+  return true;
 }
 
+// Signature order is a lexicographic order of signature entries
 bool
-Signature::operator<(const Signature& s) const{
-  if(l!=s.l) return l<s.l;
-  if(p!=s.p) return p<s.p;
-  if(e12!=s.e12) return e12<s.e12;
-  if(e23!=s.e23) return e23<s.e23;
-  if(e34!=s.e34) return e34<s.e34;
+SignatureData::operator<(const SignatureData& s) const{
+  if(length!=s.length) return length<s.length;
+  if(permutation!=s.permutation) return permutation<s.permutation;
+  for(size_t k=0;k<4;++k){
+    if(e[k]!=s.e[k]) return e[k]<s.e[k];
+  }
   return false;
 }
 
-string
-Signature::display(char sep) const{
-  string res=to_string(get_l());
-  res+=sep;
-  res+=to_string(get_p());
-  res+=sep;
-  res+=to_string(get_e12());
-  res+=sep;
-  res+=to_string(get_e23());
-  res+=sep;
-  res+=to_string(get_e34());
-  return res;
-}
-
-Signature
-Signature::son(char i) const{
-  Signature res;
-  char ai,e;
+void
+SignatureData::update_interlacing_Artin(char* e,Permutation p,Generator i){
+  char ai,si;
   if(i<0){
-    ai=-i;e=-1;
+    ai=-i;si=-1;
   }
   else{
-    ai=i;e=1;
+    ai=i;si=1;
   }
-  res.l=l+1;
-  res.p=left_prod[ai][p];
-  res.e12=e12;
-  res.e23=e23;
-  res.e34=e34;
-  char r=eval_inv(p,ai);
-  char s=eval_inv(p,ai+1);
+  char r=p(ai);
+  char s=p(ai+1);
   if(r>s) swap(r,s);
-  if(r==1 and s==2) res.e12+=e;
-  else if(r==2 and s==3) res.e23+=e;
-  else if(r==3 and s==4) res.e34+=e;
-  return res;
+  switch(10*r+s){
+  case 12:
+    e[0]+=si;
+    break;
+  case 23:
+    e[1]+=si;
+    break;
+  case 34:
+    e[2]+=si;
+    break;
+  case 14:
+    e[3]+=si;
+    break;
+  default:
+    assert(false);
+    break;
+  }
 }
 
-Signature
-Signature::father(char i) const{
+//------------------
+// Signature<Artin>
+//------------------
+
+// Assume a geodesic word w1 is expressed w2*i where w2 is geoseic then
+// len(w1)=len(w2)+1, hence len(w2)=len(w1)-1
+// perm(w1)=perm(w2)*perm(abs(i)), i.e. perm(w2)=perm(w1)*perm(abs(i)) since perms(wi) is a transposition
+// values of interlacing numbers depends of perm(w2).
+// The father signature is then the signature of w2.
+Signature<Artin>
+Signature<Artin>::father(Generator i) const{
   Signature res;
-  char ai,e;
-  if(i<0){
-    ai=-i;e=-1;
-  }
-  else{
-    ai=i;e=1;
-  }
-  res.l=l-1;
-  res.p=left_prod[ai][p];
-  res.e12=e12;
-  res.e23=e23;
-  res.e34=e34;
-  char r=eval_inv(res.p,ai);
-  char s=eval_inv(res.p,ai+1);
-  if(r>s) swap(r,s);
-  if(r==1 and s==2) res.e12-=e;
-  else if(r==2 and s==3) res.e23-=e;
-  else if(r==3 and s==4) res.e34-=e;
+  res.length=length-1;
+  res.permutation=permutation*abs(i);
+  res.full_e=full_e;
+  update_interlacing_Artin(res.e,res.permutation,-i);
   return res;
 }
 
-void
-load(int l,set<Signature>& signature){
-  fstream file;
-  file.open(DATA_DIR+to_string(l)+".csv",ios::in);
-  string line;
-  while(getline(file,line)){
-    signature.emplace(line);
+pair<Signature<Artin>,Signature<Artin>::Action>
+Signature<Artin>::minimize() const{
+  pair<Signature<Artin>,Signature<Artin>::Action> res;
+  Signature<Artin> p=phi();
+  Signature<Artin> n=negate();
+  Signature<Artin> np=p.negate();
+  res.first=*this;
+  res.second.apply_phi=false;
+  res.second.apply_negation=false;
+  if(p<res.first){
+    res.first=p;
+    res.second.apply_phi=true;
+    res.second.apply_negation=false;
   }
+  if(n<res.first){
+    res.first=n;
+    res.second.apply_phi=false;
+    res.second.apply_negation=true;
+  }
+  if(np<res.first){
+    res.first=np;
+    res.second.apply_phi=true;
+    res.second.apply_negation=true;
+  }
+  return res;
 }
 
+Signature<Artin>
+Signature<Artin>::negate() const{
+  Signature<Artin> res;
+  res.length=length;
+  res.permutation=permutation;
+  res.full_e=full_e;
+  for(size_t k=0;k<4;++k){
+    res.e[k]*=-1;
+  }
+  return res;
+}
+
+set<Signature<Artin>>
+Signature<Artin>::orbit() const{
+  set<Signature<Artin>> res;
+  res.insert(*this);
+  Signature<Artin> p=phi();
+  res.insert(p);
+  res.insert(negate());
+  res.insert(p.negate());
+  return res;
+}
+
+Signature<Artin>
+Signature<Artin>::phi() const{
+  Signature res;
+  res.length=length;
+  res.permutation=permutation.phi();
+  res.e12=e34;
+  res.e23=e23;
+  res.e34=e12;
+  res.e14=e14;
+  return res;
+}
+
+// Assume a geodesic word w2 is expressed w1*i where w1 is geoseic then
+// len(w2)=len(w1)+1
+// perm(w2)=perm(w1)*perm(abs(i))
+// values of interlacing numbers depends of perm(w1).
+// The father signature is then the signature of w2
+Signature<Artin>
+Signature<Artin>::son(Generator i) const{
+  Signature<Artin> res;
+  res.length=length+1;
+  res.permutation=permutation*abs(i);
+  res.full_e=full_e;
+  update_interlacing_Artin(res.e,permutation,i);
+  return res;
+}
+
+//-----------------
+// Other functions
+//-----------------
+
 void
-next_signatures(const set<Signature>& src,set<Signature>& dst){
+next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst){
   for(auto it=src.begin();it!=src.end();++it){
-    Signature pos_s=*it;
-    Signature phi_s=pos_s.phi();
-    Signature neg_s=pos_s.negate();
-    Signature neg_phi_s=phi_s.negate();
-    for(char i=-NBGENS;i<=NBGENS;++i){
+    Signature<Artin> s=*it;
+    Signature<Artin> s_phi=s.phi();
+    Signature<Artin> s_neg=s.negate();
+    Signature<Artin> s_phi_neg=s_phi.negate();
+    for(Generator i=-3;i<=3;++i){
       if(i!=0){
-        Signature son=pos_s.son(i);
-        if(not son.is_negative() and not son.is_phi_reducible()) dst.insert(son);
-        son=neg_s.son(i);
-        if(not son.is_negative() and not son.is_phi_reducible()) dst.insert(son);
-	son=phi_s.son(i);
-        if(not son.is_negative() and not son.is_phi_reducible()) dst.insert(son);
-	son=neg_phi_s.son(i);
-        if(not son.is_negative() and not son.is_phi_reducible()) dst.insert(son);
+	Signature<Artin> son=s.son(i);
+	if(son.is_minimal()) dst.insert(son);
+	son=s_phi.son(i);
+	if(son.is_minimal()) dst.insert(son);
+	son=s_neg.son(i);
+	if(son.is_minimal()) dst.insert(son);
+	son=s_phi_neg.son(i);
+	if(son.is_minimal()) dst.insert(son);
       }
     }
   }
-}
-
-size_t
-number(const Signature& s){
-  if(s.get_l()==0) return 1;
-  Signature ss=s;
-  if(ss.is_phi_reducible()) ss=ss.phi();
-  if(ss.is_negative()) ss=ss.negate();
-  string filename=DATA_DIR+ss.filename();
-  struct stat sb;
-  if(stat(filename.c_str(),&sb)==0){
-    size_t b_size=(ss.get_l()-1)/3+1;
-    return sb.st_size/b_size;
-  }
-  return 0;
 }

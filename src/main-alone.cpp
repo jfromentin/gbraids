@@ -14,7 +14,7 @@ int main(int argc,char** argv){
   init();
   cout<<"... done."<<endl;
   size_t total=7;
-  set<Signature> prec,cur;
+  set<Signature<Artin>> prec,cur;
   load(1,prec);
   for(char l=2;l<=12;++l){
     cur.clear();
@@ -26,7 +26,7 @@ int main(int argc,char** argv){
     size_t n=0;
     for(auto it=cur.begin();it!=cur.end();++it){
       size_t ns=work(*it);
-      int rank=it->get_rank();
+      int rank=it->rank();
       if(ns!=0) file<<it->csv()<<","<<rank<<","<<ns<<endl;
       n+=(rank*ns);
     }

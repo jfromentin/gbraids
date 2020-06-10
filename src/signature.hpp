@@ -1,138 +1,307 @@
+/* 
+ * This file is part of Gbraids (https://github.com/jfromentin/gbraids).
+ * Copyright (c) 2020 Jean Fromentin (fromentin@math.cnrs.fr).
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef SIGNATURE_HPP
 #define SIGNATURE_HPP
-
-#include <iostream>
+#include <cassert>
 #include <fstream>
-#include <sys/stat.h>
+#include <iostream>
 #include <set>
+#include <sys/stat.h>
+#include <vector>
+#include "config.hpp"
 #include "permutation.hpp"
 
 using namespace std;
 
-class Signature{
-private:
-  char l;
-  char p;
-  char e12;
-  char e23;
-  char e34;
+enum Gen{Artin,Dual};
+  
+using Generator=char;
+
+
+//***********************
+//* Class SignatureData *
+//***********************
+
+//! A class for data of braid's signature
+//! It is composed of :
+//!  - interlacing numbers
+//!  - the geodesic length of the braid
+//!  - the permutation associated to the braid
+
+class SignatureData{
 protected:
+  //! Interlacing numbers
+  union{
+    struct{
+      char e12,e23,e34,e14;
+    };
+    struct{
+      char e[6];
+    };
+    int64_t full_e;
+  };
+  
+  //! Geodesic length ot the braid
+  char length;
+  
+  //! Permutation associated to the braid
+  Permutation permutation;
+  
+  //! Base function to obtain a Signature from a CSV entry (using comma)
+  //! \param str CSV entry
+  //! \param pos current position of the read cursor
+  static int get_value(string str,size_t& pos);
+
+  //! Update interlacing numbers of a signature obtain from ther right product of a signature
+  //! by an Artin's generator i
+  //! \param e interlacing numbers of the original Signature
+  //! \param p permutation of the original Signature
+  //! \param i Artin generator that multiply the original Signature on the right
+  static void update_interlacing_Artin(char* e,Permutation p,Generator i);
+  
+protected:
+  //! Display the Signature
+  //! \param sep separator character between entries
   string display(char sep) const;
-public:
-  Signature();
-  Signature(char l,char p,char e12,char e23,char e34);
-  Signature(string str);
-  int get_l() const;
-  int get_p() const;
-  int get_e12() const;
-  int get_e23() const;
-  int get_e34() const;
-  bool operator<(const Signature& s) const;
-  bool operator==(const Signature& s) const;
+  
+public:	
+  //! Empty construcor 
+  SignatureData();
+  
+  //! A constructor 
+  SignatureData(char l,Permutation p,char e12,char e23,char e34,char e14);
+  
+  //! Construct a Signature form a string (obtain from a CSV file)
+  //! \param str string source
+  //! \param d degree of the Signature
+  SignatureData(string str);
+
+  //! Return braid length of the Signature
+  size_t braid_length() const;
+
+  //! Export the Signature to a CSV entry
   string csv() const;
+
+  //! Obtain a filename from the Signature
   string filename() const;
-  Signature son(char i) const;
-  Signature comparison()const;
-  Signature father(char i) const;
-  bool is_negative() const;
-  Signature negate() const;
-  bool is_phi_reducible() const;
-  Signature phi() const;
-  int get_rank() const;
-  friend ostream& operator<<(ostream& os,const Signature& bs);
+
+  //! Test if the Signature has length zero
+  bool has_length_zero() const;
+  
+  //! Comparison operator
+  //! \param s a Signature to compare with
+  bool operator<(const SignatureData& s) const;
+  
+  //! Equality operator
+  //! \param s a Signature to compare with
+  bool operator==(const SignatureData& s) const;
+
+  //! Equality operator
+  //! \param s a Signature to compare with
+  bool operator!=(const SignatureData& s) const;
 };
 
-void load(int l,set<Signature>&);
-void next_signatures(const set<Signature>& src,set<Signature>& dst);
-size_t number(const Signature& s);
+
+//*******************
+//* Class Signature *
+//*******************
+
+//! A class for braid's signature
+
+template<Gen G> class Signature;
+
+template<> class Signature<Artin>:public SignatureData{
+public:
+  //! Information on how obtain the mimal signature from a current one
+  struct Action{
+    bool apply_phi;
+    bool apply_negation;
+  };
+
+  //! Empty constructor
+  Signature();
+  
+  //! Construct a Signature form a string (obtain from a CSV file)
+  //! \param str string source
+  //! \param d degree of the Signature
+  Signature(string str);
+  
+  //! A constructor 
+  Signature(char l,Permutation p,char e12,char e23,char e34,char e14);
+
+  //! Return a Signature with same data except length which is length-2
+  Signature comparison() const;
+  
+  //! Return size used to store a braid with current Signature
+  size_t compressed_braid_size() const;
+  
+  //! Return the i-father of the Signature
+  //! \param i generator to apply
+  //! If a braid b has Signature S then it can be decomposed as c*i where c has Signature S.father(i).
+  Signature father(Generator i) const;
+  
+  //! Test if the SignatureData is minimal (in its orbit)
+  bool is_minimal() const;
+  
+  //! Return tne minimal Signature in the orbit of the current one plus information and how obtain it
+  pair<Signature,Action> minimize() const;
+
+  //! Return a negated version of the Signature
+  Signature negate() const;
+  
+  //! Return the orbit of the current signature
+  set<Signature> orbit() const;
+  
+  //! Apply phi to the Signature
+  //! If b has signature S the phi(b) has signature S.phi()
+  Signature phi() const;
+
+  //! Return the rank of the Signature, namely number of Signatures associated to this one under
+  //! the action of phi and negation.
+  size_t rank() const;
+  
+  //! Return the i-son of the Signature
+  //! \param i generator to apply
+  //! If a braid b has Signature S then braid b*i has Signature S.son(i).
+  Signature son(Generator i) const;
+
+  //! Operator << for Signature
+  template<Gen H> friend ostream& operator<<(ostream& os,const Signature<H>& bs);
+};
+
+//*******************
+//* Other functions *
+//*******************
+
+//! Load signature of length l from a CSV file
+//! \param l length of Signature to load
+//! \param signatures a set to strore loaded Signatures
+//! Signatures is not cleared during the call of this function.
+template<Gen G> void load(int l,set<Signature<G>>& signatures);
+
+//! Determine which Signatures must be considered during the exploration of braids of length l+1
+//! \param src the input set of all signatures of current length l
+//! \param dst the output set, that will eventually contain all signatures of length l+1
+void next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst);
+
+//********************
+//* Inline functions *
+//********************
+
+//---------------
+// SignatureData
+//---------------
 
 inline
-Signature::Signature(){
+SignatureData::SignatureData(){
 }
-
-inline
-Signature::Signature(char _l,char _p,char _e12,char _e23,char _e34):l(_l),p(_p),e12(_e12),e23(_e23),e34(_e34){
+  
+inline size_t
+SignatureData::braid_length() const{
+  return length;
 }
-
-inline int
-Signature::get_l() const{
-  return l;
-}
-
-inline int
-Signature::get_p() const{
-  return p;
-}
-
-inline int
-Signature::get_e12() const{
-  return e12;
-}
-
-inline int
-Signature::get_e23() const{
-  return e23;
-}
-
-inline int
-Signature::get_e34() const{
-  return e34;
-}
-				 
-inline bool
-Signature::operator==(const Signature& s) const{
-  return (l==s.l) and (p==s.p) and (e12==s.e12) and (e23==s.e23) and (e34==s.e34);
-}
-
 inline string
-Signature::csv() const{
+SignatureData::csv() const{
   return display(',');
 }
 
 inline string
-Signature::filename() const{
+SignatureData::filename() const{
   return display('_');
 }
 
-inline Signature
-Signature::comparison() const{
-  Signature s=*this;
-  s.l=l-2;
+inline bool
+SignatureData::has_length_zero() const{
+  return length==0;
+}
+
+inline bool
+SignatureData::operator!=(const SignatureData& s) const{
+  if(length!=s.length) return true;
+  if(permutation!=s.permutation) return true;
+  if(full_e!=s.full_e) return true;
+  return false;
+}
+
+//------------------
+// Signature<Artin> 
+//------------------
+
+inline
+Signature<Artin>::Signature():SignatureData(){
+}
+
+inline
+Signature<Artin>::Signature(string str):SignatureData(str){
+}
+
+inline
+Signature<Artin>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4):
+  SignatureData(l,p,e1,e2,e3,e4){
+}
+
+// Assume u is a geodesic word and v=u*i is not geodesic then the geodesic length of the
+// braid represented by u is |v|-2. Hence to decide is a word is geodesic we have to compare
+// it with reprensentative of braids with same signature plus "comparison signature", namely
+// same signature expcept the length is decreased by 2.
+inline Signature<Artin>
+Signature<Artin>::comparison() const{
+  Signature<Artin> s=*this;
+  s.length=length-2;
   return s;
 }
 
-inline bool
-Signature::is_negative() const{
-  if(e12!=0) return e12<0;
-  if(e23!=0) return e23<0;
-  return e34<0;
-}
-
-inline Signature
-Signature::negate() const{
-  return Signature(l,p,-e12,-e23,-e34);
+inline size_t
+Signature<Artin>::compressed_braid_size() const{
+  return (length-1)/3+1;
 }
 
 inline bool
-Signature::is_phi_reducible() const{
-  return phi_image[p]<p;
+Signature<Artin>::is_minimal() const{
+  typename set<Signature<Artin>>::iterator it=orbit().begin();
+  return *this==*it;
 }
 
-inline Signature
-Signature::phi() const{
-  return Signature(l,phi_image[p],e34,e23,e12);
+inline size_t
+Signature<Artin>::rank() const{
+  return orbit().size();
 }
 
-inline int
-Signature::get_rank() const{
-  int r=(phi_image[p]==p)?1:2;
-  if(e12==0 and e23==0 and e34==0) return r;
-  return r*2;
-}
 
-inline ostream&
-operator<<(ostream& os,const Signature& s){
+
+//-----------------
+// Other functions
+//-----------------
+
+template<Gen G> inline ostream&
+operator<<(ostream& os,const Signature<G>& s){
   return os<<'['<<s.display(',')<<']';
+}
+
+template<Gen G> void
+load(int l,set<Signature<G>>& signatures){
+  fstream file;
+  file.open(DATA_DIR+to_string(l)+".csv",ios::in);
+  string line;
+  while(getline(file,line)){
+    Signature<G> s(line);
+    signatures.emplace(s);
+  }
 }
 #endif
 

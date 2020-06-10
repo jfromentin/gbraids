@@ -34,6 +34,9 @@ src/braid.o:src/braid.cpp src/braid.hpp
 src/init.o:src/init.cpp src/init.hpp
 	$(CPP) $(CFLAGS) -c $< -o $@
 
+src/signature.o:src/signature.cpp src/signature.hpp
+	$(CPP) $(CFLAGS) -c $< -o $@
+
 $(EXE_W):dist/message.o dist/client.o dist/worker.o src/braid.o src/signature.o src/work.o src/main-worker.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 
