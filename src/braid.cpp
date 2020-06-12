@@ -17,34 +17,15 @@
 
 #include "braid.hpp"
 
-Int amplitude=0;
+//****************
+//* Braid<Artin> *
+//****************
 
+//---------------------
+// Braid<Artin>::Braid 
+//---------------------
 
-void positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
-  Int t=x1-neg(y1)-x2+pos(y2);
-  Int r1=x1+pos(y1)+pos(pos(y2)-t);
-  Int r2=y2-pos(t);
-  Int r3=x2+neg(y2)+neg(neg(y1)+t);
-  Int r4=y1+pos(t);
-  x1=r1;
-  y1=r2;
-  x2=r3;
-  y2=r4;
-}
-
-void negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2){
-  Int t=x1+neg(y1)-x2-pos(y2);
-  Int r1=x1-pos(y1)-pos(pos(y2)+t);
-  Int r2=y2+neg(t);
-  Int r3=x2-neg(y2)-neg(neg(y1)-t);
-  Int r4=y1-neg(t);
-  x1=r1;
-  y1=r2;
-  x2=r3;
-  y2=r4;
-}
-
-Braid::Braid(char* buffer,size_t l){
+Braid<Artin>::Braid(char* buffer,size_t l){
   size_t i=0;
   size_t j=0;
   while(i<l){
@@ -56,8 +37,12 @@ Braid::Braid(char* buffer,size_t l){
   len=l;
 }
 
+//---------------------
+// Braid<Artin>::write
+//---------------------
+
 void
-Braid::write(fstream& file) const{
+Braid<Artin>::write(fstream& file) const{
   size_t size=(len-1)/3+1;
   char buffer[size];
   size_t i=0;
@@ -71,28 +56,139 @@ Braid::write(fstream& file) const{
   file.write(buffer,size);
 }
 
-int
-Braid::cmp(const Braid& braid) const{
-  Int a[4];
-  Int b[4];
-  a[0]=a[1]=a[2]=a[3]=0;
-  b[0]=b[1]=b[2]=b[3]=1;
-  for(size_t i=0;i<len;++i) Dynnikov_action(-tab[len-i-1],a,b);
-  for(size_t i=0;i<braid.len;++i) Dynnikov_action(braid.tab[i],a,b);
-  for(size_t i=0;i<4;++i){
-    if(a[i]<0) return 1;
-    if(a[i]>0) return -1;
+//***************
+//* Braid<Dual> *
+//***************
+
+//---------------------
+// Braid<Dual>::Braid 
+//---------------------
+
+Braid<Dual>::Braid(char* buffer,size_t l){
+  size_t i=0;
+  size_t j=0;
+  while(i<l){
+    uchar c=buffer[j++];
+    tab[i++]=decode(c%12);
+    tab[i++]=decode(c/144); 
   }
-  return 0;
+  len=l;
 }
 
+//--------------------------
+// Braid<Dual>::coordinates 
+//--------------------------
+
+inline DynnikovCoordinates
+Braid<Dual>::coordinates() const{
+  DynnikovCoordinates d;
+  for(size_t i=0;i<len;++i){
+    char g=tab[i];
+    char ag,sg;
+    if(g<0){
+      ag=-g;
+      sg=-1;
+    }
+    else{
+      ag=g;
+      sg=1;
+    }
+    switch(ag){
+    case 1: //a12 or A12
+      d.Artin_action(g);
+      break;
+    case 2: //a23 or A23
+      d.Artin_action(g);
+      break;
+    case 3: //a13 or A13
+      d.Artin_action(1);
+      d.Artin_action(sg*2);
+      d.Artin_action(-1);
+      break;
+    case 4: //a34 or A34
+      d.Artin_action(g);
+      break;
+    case 5://a24 or A24
+      d.Artin_action(2);
+      d.Artin_action(sg*3);
+      d.Artin_action(-2);
+      break;
+    case 6://a14 or A14
+      d.Artin_action(1);
+      d.Artin_action(2);
+      d.Artin_action(sg*3);
+      d.Artin_action(-2);
+      d.Artin_action(-2);
+      break;
+    default:
+      assert(false);
+      break; 
+    };
+  }
+  return d;
+}
+
+//--------------------
+// Braid<Dual>::write
+//--------------------
+
+void
+Braid<Dual>::write(fstream& file) const{
+  size_t size=(len-1)/2+1;
+  char buffer[size];
+  size_t i=0;
+  size_t k=0;
+  while(i<len){
+    uchar c=code(tab[i++]);
+    if(i<len) c+=(code(tab[i++])*12);
+    buffer[k++]=c;
+  }
+  file.write(buffer,size);
+}
+
+//*******************
+//* Other functions *
+//*******************
+
 ostream&
-operator<<(ostream& os,const Braid& b){
+operator<<(ostream& os,const Braid<Artin>& b){
   if(b.len==0) return os<<'1';
   for(size_t i=0;i<b.len;++i){
     char c=b.tab[i];
     if(c>0) os<<char(c-1+'a');
     else os<<char(-c-1+'A');
+  }
+  return os;
+}
+
+ostream&
+operator<<(ostream& os,const Braid<Dual>& b){
+  if(b.len==0) return os<<'1';
+  for(size_t i=0;i<b.len;++i){
+    char c=b.tab[i];
+    os<<(c<0?'A':'a');
+    switch(abs(c)){
+    case 1:
+      os<<"12";
+      break;
+    case 2:
+      os<<"23";
+      break;
+    case 3:
+      os<<"13";
+      break;
+    case 4:
+      os<<"34";
+      break;
+    case 5:
+      os<<"24";
+      break;
+    case 6:
+      os<<"14";
+      break;
+    default:
+      break;
+    };
   }
   return os;
 }

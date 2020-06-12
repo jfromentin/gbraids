@@ -21,23 +21,23 @@
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <sys/stat.h>
-#include <vector>
 #include "config.hpp"
 #include "permutation.hpp"
 
 using namespace std;
 
-enum Gen{Artin,Dual};
   
 using Generator=char;
 
+//*********************
+//* Class declaration *
+//*********************
 
-//***********************
-//* Class SignatureData *
-//***********************
+//---------------
+// SignatureData 
+//---------------
 
-//! A class for data of braid's signature
+//! Class SignatureData gathering datas and methods of Signature<Gen>
 //! It is composed of :
 //!  - interlacing numbers
 //!  - the geodesic length of the braid
@@ -116,12 +116,11 @@ public:
   bool operator!=(const SignatureData& s) const;
 };
 
+//-----------
+// Signature 
+//-----------
 
-//*******************
-//* Class Signature *
-//*******************
-
-//! A class for braid's signature
+//! Class Signature for braid's signature
 
 template<Gen G> class Signature;
 
@@ -146,9 +145,6 @@ public:
 
   //! Return a Signature with same data except length which is length-2
   Signature comparison() const;
-  
-  //! Return size used to store a braid with current Signature
-  size_t compressed_braid_size() const;
   
   //! Return the i-father of the Signature
   //! \param i generator to apply
@@ -266,11 +262,6 @@ Signature<Artin>::comparison() const{
   return s;
 }
 
-inline size_t
-Signature<Artin>::compressed_braid_size() const{
-  return (length-1)/3+1;
-}
-
 inline bool
 Signature<Artin>::is_minimal() const{
   typename set<Signature<Artin>>::iterator it=orbit().begin();
@@ -281,8 +272,6 @@ inline size_t
 Signature<Artin>::rank() const{
   return orbit().size();
 }
-
-
 
 //-----------------
 // Other functions

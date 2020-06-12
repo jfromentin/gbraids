@@ -25,7 +25,7 @@ dist/worker.o:dist/worker.cpp dist/worker.hpp
 src/permutation.o:src/permutation.cpp src/permutation.hpp
 	$(CPP) $(CFLAGS) -c $< -o $@
 
-src/work.o:src/work.cpp src/work.hpp
+src/dynnikov.o:src/dynnikov.cpp src/dynnikov.hpp
 	$(CPP) $(CFLAGS) -c $< -o $@
 
 src/braid.o:src/braid.cpp src/braid.hpp
@@ -37,7 +37,7 @@ src/init.o:src/init.cpp src/init.hpp
 src/signature.o:src/signature.cpp src/signature.hpp
 	$(CPP) $(CFLAGS) -c $< -o $@
 
-$(EXE_W):dist/message.o dist/client.o dist/worker.o src/braid.o src/signature.o src/work.o src/main-worker.cpp
+$(EXE_W):dist/message.o dist/client.o dist/worker.o src/dynnikov.o src/braid.o src/signature.o src/main-worker.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 
 $(EXE_S):dist/message.o dist/server.o src/init.o src/signature.o src/gtask.o src/main-server.cpp
@@ -46,7 +46,7 @@ $(EXE_S):dist/message.o dist/server.o src/init.o src/signature.o src/gtask.o src
 $(EXE_I):dist/message.o dist/client.o dist/interface.o src/main-interface.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 
-$(EXE_A):src/init.o src/braid.o src/signature.o src/work.o src/main-alone.cpp
+$(EXE_A):src/init.o src/dynnikov.o src/braid.o src/signature.o  src/main-alone.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 
 

@@ -4,19 +4,22 @@
 #include "signature.hpp"
 #include <boost/align/aligned_allocator.hpp>
 #include <omp.h>
+#include <unordered_set>
 using namespace std;
 
 int main(int argc,char** argv){
+  unordered_set<Braid<Artin>> s;
+  
   cout<<"*******************"<<endl;
   cout<<"* Gbraids - Alone *"<<endl;
   cout<<"*******************"<<endl;
   cout<<"-> Init ";
-  init();
+  init<Artin>();
   cout<<"... done."<<endl;
   size_t total=7;
   set<Signature<Artin>> prec,cur;
   load(1,prec);
-  for(char l=2;l<=12;++l){
+  for(char l=2;l<=14;++l){
     cur.clear();
     cout<<"------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;

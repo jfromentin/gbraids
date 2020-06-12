@@ -22,6 +22,7 @@
 
 using namespace std;
 
+enum Gen{Artin,Dual};
 //*********************
 //* Class Permutation *
 //*********************

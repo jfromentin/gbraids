@@ -37,7 +37,7 @@ int main(int argc,char** argv){
   Server server(MAX_CLIENTS,SERVER_PORT);
   set<Signature<Artin>> prec,cur;
   if(l==1){
-    init();
+    init<Artin>();
     ++l;
   }
   load(l-1,prec);
@@ -45,7 +45,7 @@ int main(int argc,char** argv){
   file_bilan.open(DATA_DIR+"bilan.csv",ios::out);
   file_bilan<<"length,braids,tasks,duration"<<endl;
   size_t total_duration=0;
-  while(true){
+  while(l<=32){
     size_t duration=0;
     cur.clear();
     cout<<"---------------------------"<<endl;

@@ -17,73 +17,183 @@
 
 #ifndef BRAID_HPP
 #define BRAID_HPP
-
-#include <iostream>
 #include <cassert>
+#include <iostream>
 #include <fstream>
 #include "config.hpp"
+#include "dynnikov.hpp"
 #include "permutation.hpp"
 
 using namespace std;
 
 using uchar=unsigned char;
-using Int=int64_t;
 
-extern Int amplitude;
+//***********
+//* Classes *
+//***********
 
+//-----------
+// BraidData 
+//-----------
 
+//! Class BraidData gathering common data and methods of Braid<Gen>.
+//! BraidData is essentialy an array of char. The inverse of the g-th generator
+//! is represented by -g. The max size of the braid is hardcoded to be 32.
 
-class Braid{
-private:
+class BraidData{
+protected:
   union{
     struct{
+      //! An array of char 
       char tab[32];
     };
     struct{
+      //! The 32 length array of char can be sees an an 4 array of uint64
       uint64_t tab64[4];
     };
-  }; 
+  };
+  //! Length of the braid
   size_t len;
-
+  
 public:
-  static uchar code(char c);
-  static char decode(uchar c);
-  Braid();
-  Braid(char i);
-  Braid(char* buffer,size_t l);
-  Braid(const Braid&);
-  Braid(string str);
-  ~Braid();
+  //! Empty constructor
+  BraidData();
+  
+  //! Recopy constructor 
+  BraidData(const BraidData&);
+
+  //! Return he length of the braid
   size_t length() const;
-  Braid& operator=(const Braid&);
-  Braid operator*(char i) const;
-  void operator*=(char i);
-  int cmp(const Braid&) const; //-1 for <, 0 for == and 1 for >
-  bool operator<(const Braid&) const;
-  void write(fstream& file) const;
+
+  //! Assignement operator
+  BraidData& operator=(const BraidData&);
+
+  //! Multiply the braid inplace by a generator (or its inverse)
+  //!  \param g index, or opposite index, of a generator 
+  void operator*=(char i); 
+};
+
+template<Gen G> class Braid;
+
+//--------------
+// Braid<Artin> 
+//--------------
+
+//! Class Braid<Artin> representing Braid on Artin's generators
+//! Artin's generator are indexed as follows : sig_i -> i
+//! For the sequel a letter will be an integer {-3,-2,-1,1,2,3}
+template<> class Braid<Artin>:public BraidData{
+public:
+  //! Code a letter as an integer in [0,5]
+  static uchar code(char c);
+  
+  //! Decode an integer in [0,5] as a letter
+  static char decode(uchar c);
+
+  //! Empty constructor
+  Braid();
+
+  //! Construct a braid from an array of char; in compressed format
+  //! \param buffer buffer of char
+  //! \param l size of the buffer
+  Braid(char* buffer,size_t l);
+
+  //! Recopy constructor
+  Braid(const Braid&);
+
+  //! Return compressed size of a braid of length l
+  static size_t compressed_size(size_t l);
+
+  //! Return Dynnikov's coordinates of the braid
+  DynnikovCoordinates coordinates() const;
+  
+  //! Negate the current braid, sending i to -i. Warning, the braid so obtained is not the inverse
+  //! of the original one
   void negate();
+  
+  //! Affectation constructor
+  Braid& operator=(const Braid&);
+  
+  //! Equality operator; use Dynnikov coordinates
+  bool operator==(const Braid& b) const;
+  
+  //! Apply phi (Garside's automorphism) to the current braid 
   void phi();
-  static void disp_letter(int v);
-  static void Dynnikov_action(char i,Int* a,Int* b);
+  
+  //! Write the current braid in a file using compressed representation
+  //! \param file a file in which write the braid
+  void write(fstream& file) const;
+
+  //! Display operator
   friend ostream& operator<<(ostream&,const Braid&);
 };
 
+//-------------
+// Braid<Dual> 
+//-------------
 
-void positive_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2);
-void negative_Dynnikov_action(Int& x1,Int& y1,Int& x2,Int& y2);
+//! Class Braid<Dual> representing Braid on dual generators
+//! Dual generator are enumerate as follow : a12, a23, a13, a34, a24, a14
+//! For the sequel a letter will be an integer {-6,-5,-4,-3,-2,-1,1,2,3,4,5,6}
+template<> class Braid<Dual>:public BraidData{
+public:
+  //! Code a letter as an integer in [0,5]
+  static uchar code(char c);
+  
+  //! Decode an integer in [0,5] as a letter
+  static char decode(uchar c);
 
-inline uchar
-Braid::code(char c){
-  return (c<0)?6+c:c-1;
-}
+  //! Empty constructor
+  Braid();
 
-inline char
-Braid::decode(uchar c){
-  return (c<3)?c+1:(char)c-6;
-}
+  //! Construct a braid from an array of char; in compressed format
+  //! \param buffer buffer of char
+  //! \param l size of the buffer
+  Braid(char* buffer,size_t l);
+
+  //! Recopy constructor
+  Braid(const Braid&);
+
+  //! Return compressed size of a braid of length l
+  static size_t compressed_size(size_t l);
+
+  //! Return Dynnikov's coordinates of the braid
+  DynnikovCoordinates coordinates() const;
+  
+  //! Affectation constructor
+  Braid& operator=(const Braid&);
+  
+  //! Equality operator; use Dynnikov coordinates
+  bool operator==(const Braid& b) const;
+  
+  //! Write the current braid in a file using compressed representation
+  //! \param file a file in which write the braid
+  void write(fstream& file) const;
+
+  //! Display operator
+  friend ostream& operator<<(ostream&,const Braid&);
+};
+
+//******************
+//* Hash functions *
+//******************
+
+template<> struct std::hash<Braid<Artin>>{
+  size_t operator()(const Braid<Artin>& b) const{
+    return b.coordinates().hash();
+  }
+};
+
+//********************
+//* Inline functions * 
+//********************
+
+//-----------
+// BraidData
+//-----------
 
 inline
-Braid::Braid(){
+BraidData::BraidData(){
   tab64[0]=0;
   tab64[1]=0;
   tab64[2]=0;
@@ -92,7 +202,7 @@ Braid::Braid(){
 }
 
 inline
-Braid::Braid(const Braid& b){
+BraidData::BraidData(const BraidData& b){
   tab64[0]=b.tab64[0];
   tab64[1]=b.tab64[1];
   tab64[2]=b.tab64[2];
@@ -100,12 +210,13 @@ Braid::Braid(const Braid& b){
   len=b.len;
 }
 
-inline
-Braid::~Braid(){
+inline size_t
+BraidData::length() const{
+  return len;
 }
 
-inline Braid&
-Braid::operator=(const Braid& b){
+inline BraidData&
+BraidData::operator=(const BraidData& b){
   tab64[0]=b.tab64[0];
   tab64[1]=b.tab64[1];
   tab64[2]=b.tab64[2];
@@ -114,23 +225,54 @@ Braid::operator=(const Braid& b){
   return *this;
 }
 
-inline size_t
-Braid::length() const{
-  return len;
-}
-
 inline void
-Braid::operator*=(char i){
+BraidData::operator*=(char i){
   tab[len++]=i;
 }
 
+//--------------
+// Braid<Artin>
+//--------------
+
+inline
+Braid<Artin>::Braid():BraidData(){
+}
+
+inline
+Braid<Artin>::Braid(const Braid<Artin>& b):BraidData(b){
+}
+
+inline uchar
+Braid<Artin>::code(char c){
+  return (c<0)?6+c:c-1;
+}
+
+inline size_t
+Braid<Artin>::compressed_size(size_t l){
+  return (l-1)/3+1;
+}
+
+inline DynnikovCoordinates
+Braid<Artin>::coordinates() const{
+  DynnikovCoordinates d;
+  for(size_t i=0;i<len;++i){
+    d.Artin_action(tab[i]);
+  }
+  return d;
+}
+
+inline char
+Braid<Artin>::decode(uchar c){
+  return (c<3)?c+1:(char)c-6;
+}
+
 inline void
-Braid::negate(){
+Braid<Artin>::negate(){
   for(size_t i=0;i<len;++i) tab[i]*=-1;
 }
 
 inline void
-Braid::phi(){
+Braid<Artin>::phi(){
   for(size_t i=0;i<len;++i){
     char v=tab[i];
     tab[i]=(v>0)?4-v:-4-v;
@@ -138,29 +280,39 @@ Braid::phi(){
 }
 
 inline bool
-Braid::operator<(const Braid& b) const{
-  return cmp(b)==-1;
+Braid<Artin>::operator==(const Braid<Artin>& b) const{
+  return coordinates()==b.coordinates();
 }
 
-inline void
-Braid::disp_letter(int v){
-  if(v>0) cout<<char('a'+v-1);
-  else cout<<char('A'-v-1);
+//-------------
+// Braid<Dual>
+//-------------
+
+inline
+Braid<Dual>::Braid():BraidData(){
 }
 
-
-inline void
-Braid::Dynnikov_action(char i,Int* a,Int* b){
-  if(i>0) positive_Dynnikov_action(a[i-1],b[i-1],a[i],b[i]);
-  else negative_Dynnikov_action(a[-i-1],b[-i-1],a[-i],b[-i]);
+inline
+Braid<Dual>::Braid(const Braid<Dual>& b):BraidData(b){
 }
 
-inline Int pos(Int a){
-  return (a<0)?0:a;
+inline uchar
+Braid<Dual>::code(char c){
+  return (c<0)?12+c:c-1;
 }
 
-inline Int neg(Int a){
-  return (a>0)?0:a;
+inline size_t
+Braid<Dual>::compressed_size(size_t l){
+  return (l-1)/2+1;
 }
 
+inline char
+Braid<Dual>::decode(uchar c){
+  return (c<6)?c+1:(char)c-12;
+}
+
+inline bool
+Braid<Dual>::operator==(const Braid<Dual>& b) const{
+  return coordinates()==b.coordinates();
+}
 #endif

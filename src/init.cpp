@@ -17,30 +17,19 @@
 
 #include "init.hpp"
 
-void init(){
-  fstream file_data,file_csv;;
-  //Length 0
+template<> void init<Artin>(){
+  fstream file_csv;
+  //length 0
   file_csv.open(DATA_DIR+"0.csv",ios::out);
-  Signature<Artin> s(0,Permutation(),0,0,0,0);
-  file_data.open(DATA_DIR+s.filename(), ios::out | ios::binary);
+  Signature<Artin> s(0,Permutation(1,2,3,4),0,0,0,0);
   file_csv<<s.csv()<<",1,1"<<endl;
-  file_data.close();
   file_csv.close();
 
   //Length 1
   char c;
   file_csv.open(DATA_DIR+"1.csv",ios::out);
-  s=Signature<Artin>(1,Permutation(1,3,2,4),0,-1,0,0);
-  file_data.open(DATA_DIR+s.filename(), ios::out | ios::binary);
-  c=Braid::code(-2);file_data.write(&c,1);
-  file_data.close();
-  file_csv<<s.csv()<<",2,1"<<endl;
-
-  s=Signature<Artin>(1,Permutation(1,2,4,3),0,0,-1,0);
-  file_data.open(DATA_DIR+s.filename(), ios::out | ios::binary);
-  c=Braid::code(-3);file_data.write(&c,1);
-  file_data.close();
-  file_csv<<s.csv()<<",4,1"<<endl;
+  write_braid<Artin>(-2,1,Permutation(1,3,2,4),0,-1,0,0,file_csv);
+  write_braid<Artin>(-3,1,Permutation(1,2,4,3),0,0,-1,0,file_csv);
   file_csv.close();
 }
 

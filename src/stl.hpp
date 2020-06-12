@@ -19,6 +19,7 @@
 #define STL_HPP
 
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -38,6 +39,10 @@ template<class T> ostream& operator<<(ostream& os,const set<T>& s);
 
 //! Overload of << operator
 template<class T> ostream& operator<<(ostream& os,const vector<T>& s);
+//-----------------------
+// Hash for Braid<Artin>
+//-----------------------
+
 
 //********************
 //* Inline functions *
@@ -46,7 +51,9 @@ template<class T> ostream& operator<<(ostream& os,const vector<T>& s);
 template<class T> inline void insert(set<T>& s,const T& b){
   s.insert(b);
 }
-
+template<class T> inline void insert(unordered_set<T>& s,const T& b){
+  s.insert(b);
+}
 template<class T> inline void insert(vector<T>& v,const T& b){
   v.push_back(b);
 }
