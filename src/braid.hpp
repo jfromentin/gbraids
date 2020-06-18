@@ -23,6 +23,7 @@
 #include "config.hpp"
 #include "dynnikov.hpp"
 #include "permutation.hpp"
+#include "signature.hpp"
 
 using namespace std;
 
@@ -101,6 +102,9 @@ public:
   //! Recopy constructor
   Braid(const Braid&);
 
+  //! Apply action
+  void apply(typename Signature<Artin>::Action& action);
+  
   //! Return compressed size of a braid of length l
   static size_t compressed_size(size_t l);
 
@@ -136,6 +140,8 @@ public:
 //! Dual generator are enumerate as follow : a12, a23, a13, a34, a24, a14
 //! For the sequel a letter will be an integer {-6,-5,-4,-3,-2,-1,1,2,3,4,5,6}
 template<> class Braid<Dual>:public BraidData{
+private:
+  static char phi(char g,int d);
 public:
   //! Code a letter as an integer in [0,5]
   static uchar code(char c);
@@ -153,6 +159,9 @@ public:
 
   //! Recopy constructor
   Braid(const Braid&);
+
+  //! Apply action
+  void apply(const typename Signature<Dual>::Action& action);
 
   //! Return compressed size of a braid of length l
   static size_t compressed_size(size_t l);
@@ -180,6 +189,12 @@ public:
 
 template<> struct std::hash<Braid<Artin>>{
   size_t operator()(const Braid<Artin>& b) const{
+    return b.coordinates().hash();
+  }
+};
+
+template<> struct std::hash<Braid<Dual>>{
+  size_t operator()(const Braid<Dual>& b) const{
     return b.coordinates().hash();
   }
 };
@@ -240,6 +255,12 @@ Braid<Artin>::Braid():BraidData(){
 
 inline
 Braid<Artin>::Braid(const Braid<Artin>& b):BraidData(b){
+}
+
+inline void
+Braid<Artin>::apply(typename Signature<Artin>::Action& action){
+  if(action.apply_phi) phi();
+  if(action.apply_negation) negate();
 }
 
 inline uchar

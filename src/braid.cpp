@@ -70,35 +70,46 @@ Braid<Dual>::Braid(char* buffer,size_t l){
   while(i<l){
     uchar c=buffer[j++];
     tab[i++]=decode(c%12);
-    tab[i++]=decode(c/144); 
+    tab[i++]=decode(c/12); 
   }
   len=l;
+}
+
+//--------------------
+// Braid<Dual>::apply
+//--------------------
+
+void
+Braid<Dual>::apply(const typename Signature<Dual>::Action& action){
+  for(size_t i=0;i<len;++i){
+    char v=tab[i];
+    if(v>0) tab[i]=phi(v,4-action.phi_degree);
+    else tab[i]=-phi(-v,4-action.phi_degree);
+  }
 }
 
 //--------------------------
 // Braid<Dual>::coordinates 
 //--------------------------
 
-inline DynnikovCoordinates
+DynnikovCoordinates
 Braid<Dual>::coordinates() const{
   DynnikovCoordinates d;
   for(size_t i=0;i<len;++i){
     char g=tab[i];
     char ag,sg;
     if(g<0){
-      ag=-g;
-      sg=-1;
+      ag=-g;sg=-1;
     }
     else{
-      ag=g;
-      sg=1;
+      ag=g;sg=1;
     }
     switch(ag){
     case 1: //a12 or A12
-      d.Artin_action(g);
+      d.Artin_action(sg);
       break;
     case 2: //a23 or A23
-      d.Artin_action(g);
+      d.Artin_action(sg*2);
       break;
     case 3: //a13 or A13
       d.Artin_action(1);
@@ -106,7 +117,7 @@ Braid<Dual>::coordinates() const{
       d.Artin_action(-1);
       break;
     case 4: //a34 or A34
-      d.Artin_action(g);
+      d.Artin_action(sg*3);
       break;
     case 5://a24 or A24
       d.Artin_action(2);
@@ -118,7 +129,7 @@ Braid<Dual>::coordinates() const{
       d.Artin_action(2);
       d.Artin_action(sg*3);
       d.Artin_action(-2);
-      d.Artin_action(-2);
+      d.Artin_action(-1);
       break;
     default:
       assert(false);
@@ -126,6 +137,40 @@ Braid<Dual>::coordinates() const{
     };
   }
   return d;
+}
+
+//------------------
+// Braid<Dual>::phi
+//------------------
+char
+Braid<Dual>::phi(char g,int d){
+  switch(d){
+  case 0:
+    return g;
+    break;
+  case 1:
+    {
+      char data[6]={2,4,5,6,3,1};
+      return data[g-1];
+    }
+    break;
+  case 2:
+    {
+      char data[6]={4,6,3,1,5,2};
+      return data[g-1];
+    }
+    break;
+  case 3:
+    {
+      char data[6]={6,1,5,2,3,4};
+      return data[g-1];
+    }
+    break;
+  default:
+    assert(false);
+    break;
+  };
+  return g;
 }
 
 //--------------------

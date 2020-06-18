@@ -4,7 +4,7 @@
 #include "signature.hpp"
 
 struct GTaskInput{
-  Signature<Artin> signature;
+  Signature<GEN> signature;
 };
 
 struct GTaskOutput{
@@ -12,7 +12,7 @@ struct GTaskOutput{
 };
 
 bool compare_gtask(const Task& t1,const Task& t2);
-Task* generate_gtask(set<Signature<Artin>>& signatures);
+Task* generate_gtask(set<Signature<GEN>>& signatures);
 
 
 

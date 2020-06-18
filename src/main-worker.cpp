@@ -15,7 +15,7 @@ int main(int argc,char** argv){
   while(true){
     Task task=worker.get_task();
     const GTaskInput* input=(const GTaskInput*)task.get_input();
-    const Signature<Artin>& signature=input->signature;
+    const Signature<GEN>& signature=input->signature;
     GTaskOutput output;
     auto start = std::chrono::system_clock::now();
     size_t n=work(signature);

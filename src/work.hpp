@@ -38,7 +38,7 @@ template<Gen G,class T> void load(const Signature<G>& s,T& dst);
 //! \param s a Signature
 //! \param dst a container to load braids in (vector or unordored_set)
 //! \praam action an Action to apply to each loaded braid
-template<class T> void load(const Signature<Artin>& s,T& dst,Signature<Artin>::Action& action);
+template<Gen G,class T> void load(const Signature<G>& s,T& dst,typename Signature<G>::Action& action);
 
 //! Write in a file certain braid with a given signature
 //! \param s Signature to consider
@@ -54,67 +54,88 @@ template<Gen G> size_t work(const Signature<G>& s);
 //* Function definition *
 //***********************
 
-template<class T> void
-load(const Signature<Artin>& s,T& dst){
+template<Gen G,class T> void
+load(const Signature<G>& s,T& dst){
   if(not s.has_length_zero()){
-    pair<Signature<Artin>,Signature<Artin>::Action> res=s.minimize();
+    pair<Signature<G>,typename Signature<G>::Action> res=s.minimize();
+    //cout<<"Load "<<s<<" from "<<res.first<<" with d = "<<res.second.phi_degree<<endl;
     load(res.first,dst,res.second);
   }
   else{
-    Braid<Artin> b;
+    Braid<G> b;
     insert(dst,b);
   }
 }
 
-template<class T> void
-load(const Signature<Artin>& s,T& dst,Signature<Artin>::Action& action){
+template<Gen G,class T> void
+load(const Signature<G>& s,T& dst,typename Signature<G>::Action& action){
   string filename=s.filename();
   fstream file;
   file.open(DATA_DIR+filename.c_str(),ios::in);
   if(file.is_open()){
     size_t l=s.braid_length();
-    size_t bsize=Braid<Artin>::compressed_size(l);
+    size_t bsize=Braid<G>::compressed_size(l);
     char buffer[bsize];
     while(true){
       file.read(buffer,bsize);
       if(file.gcount()==0) break;
-      Braid<Artin> b(buffer,l);
-      if(action.apply_negation) b.negate();
-      if(action.apply_phi) b.phi();
+      Braid<G> b(buffer,l);
+      //cout<<b<<" -> ";
+      b.apply(action);
+      //cout<<b<<endl;
       insert(dst,b);
+      
     }
   }
 }
 
 template<Gen G> void
 output(const Signature<G>& s,const unordered_set<Braid<G>>& braids){
+  //cout<<"Output "<<s<<endl;
   string filename=s.filename();
   fstream file;
   char l=s.braid_length();
   file.open(DATA_DIR+filename.c_str(),ios::out|ios::app);
   for(auto it=braids.begin();it!=braids.end();++it){
-    if(it->length()==l) it->write(file);
+    if(it->length()==l){
+      it->write(file);
+      //cout<<"  -- "<<*it<<endl;
+    }
   }
   file.close();
 }
 
 template<Gen G> size_t
 work(const Signature<G>& s_out){
+  //cout<<endl<<endl<<"s_out = "<<s_out<<endl;
   Signature<G> s_cmp=s_out.comparison();
   unordered_set<Braid<G>> cmp;
   load(s_cmp,cmp);
+  /*cout<<"s_cmp = "<<s_cmp<<endl;
+  cout<<"cmp = [";
+  for(auto it=cmp.begin();it!=cmp.end();++it){
+   cout<<' '<<*it;
+   }
+   cout<<" ]"<<endl;*/
   size_t n=0;
-  for(char i=-3;i<=3;++i){
+  for(char i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
     if(i!=0){
       Signature<G> s_src=s_out.father(i);
+      //cout<<"-- "<<(int)i<<" --> "<<s_src<<" r "<<s_src.minimize().first<<" : "<<s_src.orbit()<<endl;
       vector<Braid<G>> src;
       load(s_src,src);
       size_t nsrc=src.size();
+      //cout<<"-- src = "<<src<<endl;
       for(size_t k=0;k<nsrc;++k){
 	Braid<G> b=src[k];
+	//cout<<b<<" * "<<(int)i<<endl;
 	b*=i;
+	//cout<<" = "<<b<<endl;
 	auto p_ins=cmp.insert(b);
-	if(p_ins.second) ++n;
+	if(p_ins.second){
+	  //cout<<"Add "<<b<<endl;
+	  ++n;
+	}
       }
     }
   }

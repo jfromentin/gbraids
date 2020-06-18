@@ -57,6 +57,38 @@ SignatureData::display(char sep) const{
 }
 
 int
+SignatureData::dual_interlacing_number(char ag,char sg,char i,char j){
+  if(i>j) swap(i,j);
+  char r,s;
+  switch(ag){
+  case 1:
+    r=1;s=2;
+    break;
+  case 2:
+    r=2;s=3;
+    break;
+  case 3:
+    r=1;s=3;
+    break;
+  case 4:
+    r=3;s=4;
+    break;
+  case 5:
+    r=2;s=4;
+    break;
+  case 6:
+    r=1;s=4;
+    break;
+  default:
+    break;
+  };
+  if(i==r and j<=s-1) return 1;
+  if(i==r and j==s) return sg;
+  if(r+1<=i and j==s) return -1;
+  return 0;
+}
+
+int
 SignatureData::get_value(string str,size_t& pos){
   string res="";
   while(pos!=str.size() and str[pos]!=','){
@@ -88,6 +120,7 @@ SignatureData::operator<(const SignatureData& s) const{
   return false;
 }
 
+
 void
 SignatureData::update_interlacing_Artin(char* e,Permutation p,Generator i){
   char ai,si;
@@ -118,6 +151,23 @@ SignatureData::update_interlacing_Artin(char* e,Permutation p,Generator i){
     break;
   }
 }
+
+void
+SignatureData::update_interlacing_Dual(char* e,Permutation p,Generator g){
+  char ag,sg;
+  if(g<0){
+    ag=-g;sg=-1;
+  }
+  else{
+    ag=g;sg=1;
+  }
+  Permutation pi=p.inverse();
+  e[0]+=dual_interlacing_number(ag,sg,pi(1),pi(2));
+  e[1]+=dual_interlacing_number(ag,sg,pi(2),pi(3));
+  e[2]+=dual_interlacing_number(ag,sg,pi(3),pi(4));
+  e[3]+=dual_interlacing_number(ag,sg,pi(1),pi(4));
+}
+
 
 //------------------
 // Signature<Artin>
@@ -216,6 +266,104 @@ Signature<Artin>::son(Generator i) const{
 }
 
 //-----------------
+// Signature<Dual>
+//-----------------
+
+// Assume a geodesic word w1 is expressed w2*i where w2 is geoseic then
+// len(w1)=len(w2)+1, hence len(w2)=len(w1)-1
+// perm(w1)=perm(w2)*perm(abs(i)), i.e. perm(w2)=perm(w1)*perm(abs(i)) since perms(wi) is a transposition
+// values of interlacing numbers depends of perm(w2).
+// The father signature is then the signature of w2.
+Signature<Dual>
+Signature<Dual>::father(Generator i) const{
+  Signature res=son(-i);
+  res.length=length-1;
+  return res;
+}
+
+pair<Signature<Dual>,Signature<Dual>::Action>
+Signature<Dual>::minimize() const{
+  pair<Signature<Dual>,Signature<Dual>::Action> res;
+  Signature<Dual> s[4];
+  s[0]=*this;
+  s[1]=s[0].phi();
+  s[2]=s[1].phi();
+  s[3]=s[2].phi();
+  Signature smin=s[0];
+  int dmin=0;
+  for(int d=1;d<4;++d){
+    if(s[d]<smin){
+      smin=s[d];
+      dmin=d;
+    }
+  }
+  res.first=smin;
+  res.second.phi_degree=dmin;
+  return res;      
+}
+
+set<Signature<Dual>>
+Signature<Dual>::orbit() const{
+  set<Signature<Dual>> res;
+  res.insert(*this);
+  Signature<Dual> p=phi();
+  res.insert(p);
+  p=p.phi();
+  res.insert(p);
+  p=p.phi();
+  res.insert(p);
+  return res;
+}
+
+Signature<Dual>
+Signature<Dual>::phi() const{
+  Signature res;
+  res.length=length;
+  res.permutation=permutation.phi_dual();
+  res.e12=e14+1;
+  res.e23=e12;
+  res.e34=e23;
+  res.e14=e34+1;
+  char k=permutation(4);
+  switch(k){
+  case 1:
+    res.e12-=1;
+    res.e23-=1;
+    break;
+  case 2:
+    res.e23-=1;
+    res.e34-=1;
+    break;
+  case 3:
+    res.e34-=1;
+    res.e14-=1;
+    break;
+  case 4:
+    res.e12-=1;
+    res.e14-=1;
+    break;
+  default:
+    break;
+  }
+  return res;
+}
+
+// Assume a geodesic word w2 is expressed w1*i where w1 is geoseic then
+// len(w2)=len(w1)+1
+// perm(w2)=perm(w1)*perm(abs(i))
+// values of interlacing numbers depends of perm(w1).
+// The father signature is then the signature of w2
+Signature<Dual>
+Signature<Dual>::son(Generator i) const{
+  Signature<Dual> res;
+  res.length=length+1;
+  res.permutation=permutation.dual_prod(abs(i));
+  res.full_e=full_e;
+  update_interlacing_Dual(res.e,permutation,i);
+  return res;
+}
+
+//-----------------
 // Other functions
 //-----------------
 
@@ -236,6 +384,21 @@ next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst){
 	if(son.is_minimal()) dst.insert(son);
 	son=s_phi_neg.son(i);
 	if(son.is_minimal()) dst.insert(son);
+      }
+    }
+  }
+}
+
+void
+next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst){
+  for(auto it=src.begin();it!=src.end();++it){
+    set<Signature<Dual>> orbit=it->orbit();
+    for(auto it2=orbit.begin();it2!=orbit.end();++it2){
+      for(Generator i=-6;i<=6;++i){
+	if(i!=0){
+	  Signature<Dual> son=it2->son(i);
+	  if(son.is_minimal()) dst.insert(son);
+	}
       }
     }
   }

@@ -22,7 +22,6 @@
 
 using namespace std;
 
-enum Gen{Artin,Dual};
 //*********************
 //* Class Permutation *
 //*********************
@@ -58,6 +57,12 @@ public:
   //! Multiply the current permutation on the right by s_i=(i i+1)
   //! \param i a char in {1,2,3}
   Permutation operator*(char i) const;
+
+  //! Multiply the current permutation on the right by the permutation of ith dual generator
+  //! \param i a char in {1,2,3,4,5,6}
+  Permutation dual_prod(char i) const;
+
+  Permutation inverse() const;
   
   //! The less operator
   //! \param p a permutation to compare with
@@ -75,6 +80,10 @@ public:
   //! Return the image of permutation under the action of phi,
   //! which transform s_{i} in s_{n-i}
   Permutation phi() const;
+
+  //! Return the image of permutation under the action of phi dual,
+  //! which transform a_{i,j} in a_{i+1,j+1}
+  Permutation phi_dual() const;
   
   //! Return a string of the window view of the permutation
   string to_string() const;
@@ -114,6 +123,17 @@ Permutation::Permutation(int p){
 }
 
 inline Permutation
+Permutation::inverse() const{
+  Permutation res;
+  res.tab[0]=0;
+  res.tab[tab[1]]=1;
+  res.tab[tab[2]]=2;
+  res.tab[tab[3]]=3;
+  res.tab[tab[4]]=4;
+  return res;
+}
+
+inline Permutation
 Permutation::operator*(char i) const{
   Permutation res;
   res.data=data;
@@ -137,6 +157,35 @@ Permutation::operator()(char i) const{
 }
 
 inline Permutation
+Permutation::dual_prod(char i) const{
+  Permutation res;
+  res.data=data;
+  switch(i){
+  case 1:
+    swap(res.tab[1],res.tab[2]);
+    break;
+  case 2:
+    swap(res.tab[2],res.tab[3]);
+    break;
+  case 3:
+    swap(res.tab[1],res.tab[3]);
+    break;
+  case 4:
+    swap(res.tab[3],res.tab[4]);
+    break;
+  case 5:
+    swap(res.tab[2],res.tab[4]);
+    break;
+  case 6:
+    swap(res.tab[1],res.tab[4]);
+    break;
+  default:
+    break;
+  };
+  return res;
+}
+
+inline Permutation
 Permutation::phi() const{
   Permutation res;
   res.tab[0]=0;
@@ -146,6 +195,22 @@ Permutation::phi() const{
   res.tab[4]=5-tab[1];
   return res;
 }
+
+inline Permutation
+Permutation::phi_dual() const{
+  Permutation res;
+  res.tab[0]=0;
+  char c=tab[4];
+  res.tab[1]=(c==4)?1:c+1;
+  c=tab[1];
+  res.tab[2]=(c==4)?1:c+1;
+  c=tab[2];
+  res.tab[3]=(c==4)?1:c+1;
+  c=tab[3];
+  res.tab[4]=(c==4)?1:c+1;
+  return res;
+}
+
 
 inline string
 Permutation::to_string() const{

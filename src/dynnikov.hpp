@@ -27,6 +27,7 @@
 //**********
 
 using Int = int64_t;
+using UInt = uint64_t;
 
 //*********************
 //* Class declaration *
@@ -76,7 +77,7 @@ public:
   bool operator<(const DynnikovCoordinates& d) const;
 
   //! Hash function
-  uint64_t hash() const;  
+  size_t hash() const;  
 };
 
 //---------------------
@@ -107,7 +108,7 @@ inline size_t
 DynnikovCoordinates::hash() const{
   size_t res=0;
   for(size_t k=0;k<8;++k){
-    uint64_t t=c[k];
+    size_t t=c[k];
     t=t%256;
     res=(res<<8)+t;
   }

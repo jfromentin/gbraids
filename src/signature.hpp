@@ -23,11 +23,12 @@
 #include <set>
 #include "config.hpp"
 #include "permutation.hpp"
+#include "stl.hpp"
 
 using namespace std;
 
-  
 using Generator=char;
+
 
 //*********************
 //* Class declaration *
@@ -61,7 +62,9 @@ protected:
   
   //! Permutation associated to the braid
   Permutation permutation;
-  
+
+  static int dual_interlacing_number(char ag,char sg,char i,char j);
+    
   //! Base function to obtain a Signature from a CSV entry (using comma)
   //! \param str CSV entry
   //! \param pos current position of the read cursor
@@ -73,6 +76,13 @@ protected:
   //! \param p permutation of the original Signature
   //! \param i Artin generator that multiply the original Signature on the right
   static void update_interlacing_Artin(char* e,Permutation p,Generator i);
+
+  //! Update interlacing numbers of a signature obtain from ther right product of a signature
+  //! by an Dual's generator i
+  //! \param e interlacing numbers of the original Signature
+  //! \param p permutation of the original Signature
+  //! \param i Dual generator that multiply the original Signature on the right
+  static void update_interlacing_Dual(char* e,Permutation p,Generator i);
   
 protected:
   //! Display the Signature
@@ -116,14 +126,19 @@ public:
   bool operator!=(const SignatureData& s) const;
 };
 
-//-----------
-// Signature 
-//-----------
+//--------------
+// Signature<G>
+//--------------
 
 //! Class Signature for braid's signature
 
 template<Gen G> class Signature;
 
+//------------------
+// Signature<Artin> 
+//------------------
+
+//! Class Signature for Artin-braid's signature
 template<> class Signature<Artin>:public SignatureData{
 public:
   //! Information on how obtain the mimal signature from a current one
@@ -131,7 +146,8 @@ public:
     bool apply_phi;
     bool apply_negation;
   };
-
+  static const char nbgen=3;
+  
   //! Empty constructor
   Signature();
   
@@ -180,6 +196,63 @@ public:
   template<Gen H> friend ostream& operator<<(ostream& os,const Signature<H>& bs);
 };
 
+//-----------------
+// Signature<Dual> 
+//-----------------
+
+//! Class Signature for Dual-braid's signature
+template<> class Signature<Dual>:public SignatureData{
+public:
+  //! Information on how obtain the mimal signature from a current one
+  struct Action{
+    int phi_degree;
+  };
+  static const char nbgen=6;
+  //! Empty constructor
+  Signature();
+  
+  //! Construct a Signature form a string (obtain from a CSV file)
+  //! \param str string source
+  //! \param d degree of the Signature
+  Signature(string str);
+  
+  //! A constructor 
+  Signature(char l,Permutation p,char e12,char e23,char e34,char e14);
+
+  //! Return a Signature with same data except length which is length-2
+  Signature comparison() const;
+  
+  //! Return the i-father of the Signature
+  //! \param i generator to apply
+  //! If a braid b has Signature S then it can be decomposed as c*i where c has Signature S.father(i).
+  Signature father(Generator i) const;
+  
+  //! Test if the SignatureData is minimal (in its orbit)
+  bool is_minimal() const;
+  
+  //! Return tne minimal Signature in the orbit of the current one plus information and how obtain it
+  pair<Signature,Action> minimize() const;
+ 
+  //! Return the orbit of the current signature
+  set<Signature> orbit() const;
+  
+  //! Apply phi to the Signature
+  //! If b has signature S the phi(b) has signature S.phi()
+  Signature phi() const;
+
+  //! Return the rank of the Signature, namely number of Signatures associated to this one under
+  //! the action of phi and negation.
+  size_t rank() const;
+  
+  //! Return the i-son of the Signature
+  //! \param i generator to apply
+  //! If a braid b has Signature S then braid b*i has Signature S.son(i).
+  Signature son(Generator i) const;
+
+  //! Operator << for Signature
+  template<Gen H> friend ostream& operator<<(ostream& os,const Signature<H>& bs);
+};
+
 //*******************
 //* Other functions *
 //*******************
@@ -194,7 +267,7 @@ template<Gen G> void load(int l,set<Signature<G>>& signatures);
 //! \param src the input set of all signatures of current length l
 //! \param dst the output set, that will eventually contain all signatures of length l+1
 void next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst);
-
+void next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst);
 //********************
 //* Inline functions *
 //********************
@@ -270,6 +343,45 @@ Signature<Artin>::is_minimal() const{
 
 inline size_t
 Signature<Artin>::rank() const{
+  return orbit().size();
+}
+
+//-----------------
+// Signature<Dual> 
+//-----------------
+
+inline 
+Signature<Dual>::Signature():SignatureData(){
+}
+
+inline
+Signature<Dual>::Signature(string str):SignatureData(str){
+}
+
+inline
+Signature<Dual>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4):
+  SignatureData(l,p,e1,e2,e3,e4){
+}
+
+// Assume u is a geodesic word and v=u*i is not geodesic then the geodesic length of the
+// braid represented by u is |v|-2. Hence to decide is a word is geodesic we have to compare
+// it with reprensentative of braids with same signature plus "comparison signature", namely
+// same signature expcept the length is decreased by 2.
+inline Signature<Dual>
+Signature<Dual>::comparison() const{
+  Signature<Dual> s=*this;
+  s.length=length-2;
+  return s;
+}
+
+inline bool
+Signature<Dual>::is_minimal() const{
+  typename set<Signature<Dual>>::iterator it=orbit().begin();
+  return *this==*it;
+}
+
+inline size_t
+Signature<Dual>::rank() const{
   return orbit().size();
 }
 

@@ -7,23 +7,37 @@
 #include <unordered_set>
 using namespace std;
 
-int main(int argc,char** argv){
-  unordered_set<Braid<Artin>> s;
-  
-  cout<<"*******************"<<endl;
-  cout<<"* Gbraids - Alone *"<<endl;
-  cout<<"*******************"<<endl;
+template<Gen G> void run(){
+  for(int i=-6;i<=6;++i){
+    if(i!=0){
+      int c=Braid<Dual>::code(i);
+      int d=Braid<Dual>::decode(c);
+      cout<<i<<"->"<<c<<"->"<<d<<endl;
+    }
+  }
+
+  if(G==Artin){
+    cout<<"***************************"<<endl;
+    cout<<"* Gbraids - Artin - Alone *"<<endl;
+    cout<<"***************************"<<endl;
+  }
+  else{
+    cout<<"**************************"<<endl;
+    cout<<"* Gbraids - Dual - Alone *"<<endl;
+    cout<<"**************************"<<endl;
+  }
   cout<<"-> Init ";
-  init<Artin>();
+  init<G>();
   cout<<"... done."<<endl;
-  size_t total=7;
-  set<Signature<Artin>> prec,cur;
+  set<Signature<G>> prec,cur;
   load(1,prec);
-  for(char l=2;l<=14;++l){
+						
+  next_signatures(prec,cur);
+  for(char l=2;l<=20;++l){
     cur.clear();
     cout<<"------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;
-     next_signatures(prec,cur);
+    next_signatures(prec,cur);
     fstream file;
     file.open(DATA_DIR+to_string((int)l)+".csv",ios::out);
     size_t n=0;
@@ -35,7 +49,9 @@ int main(int argc,char** argv){
     }
     cout<<"-> "<<n<<" braids."<<endl;
     swap(cur,prec);
-    total+=n;
   }
-  cout<<endl<<"==> Total number of braids: "<<total<<endl;
+}
+
+int main(int argc,char** argv){
+  run<GEN>();
 }

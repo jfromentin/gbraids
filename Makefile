@@ -37,6 +37,9 @@ src/init.o:src/init.cpp src/init.hpp
 src/signature.o:src/signature.cpp src/signature.hpp
 	$(CPP) $(CFLAGS) -c $< -o $@
 
+src/gtask.o:src/gtask.cpp src/gtask.hpp
+	$(CPP) $(CFLAGS) -c $< -o $@
+
 $(EXE_W):dist/message.o dist/client.o dist/worker.o src/dynnikov.o src/braid.o src/signature.o src/main-worker.cpp
 	$(CPP) $(CFLAGS) $^ -o $@ $(LIBS)
 

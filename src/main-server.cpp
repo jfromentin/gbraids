@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc,char** argv){
   int l;
   try{
-    TCLAP::CmdLine cmd("Count Artin braids on "+to_string(STRANDS)+" strands with given geodesic length (server)",' ',"0.1");
+    TCLAP::CmdLine cmd("Count braids on "+to_string(STRANDS)+" strands with given geodesic length (server)",' ',"0.1");
     TCLAP::ValueArg<int> l_arg("l","length","geodesic length",true,0,"integer");
     cmd.add(l_arg);
     cmd.parse(argc,argv);
@@ -35,9 +35,9 @@ int main(int argc,char** argv){
   cout<<"*************************"<<endl;
   Task* tasks=nullptr;
   Server server(MAX_CLIENTS,SERVER_PORT);
-  set<Signature<Artin>> prec,cur;
+  set<Signature<GEN>> prec,cur;
   if(l==1){
-    init<Artin>();
+    init<GEN>();
     ++l;
   }
   load(l-1,prec);

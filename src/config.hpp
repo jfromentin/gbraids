@@ -1,7 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-
+enum Gen{Artin,Dual};
 #define STRANDS 4
 #define MAXLEN 32
 #define NBGENS 3
@@ -11,6 +11,8 @@
 #define MAX_MSG_SIZE 1024
 #define MAX_CLIENTS 1024
 #define MAX_WORKERS 800
-#define DATA_DIR string("/home/fromentin/Desktop/data/") //string("/workdir/lmpa/jfromentin/")
+#define DATA_DIR string("/mnt/m2/data/") //string("/workdir/lmpa/jfromentin/")
+
+#define GEN Dual
 
 #endif
