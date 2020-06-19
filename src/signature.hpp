@@ -1,5 +1,4 @@
-/* 
- * This file is part of Gbraids (https://github.com/jfromentin/gbraids).
+/*This file is part of Gbraids (https://github.com/jfromentin/gbraids).
  * Copyright (c) 2020 Jean Fromentin (fromentin@math.cnrs.fr).
  * 
  * This program is free software: you can redistribute it and/or modify  
@@ -21,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <sys/stat.h> 
 #include "config.hpp"
 #include "permutation.hpp"
 #include "stl.hpp"
@@ -49,7 +49,7 @@ protected:
   //! Interlacing numbers
   union{
     struct{
-      char e12,e23,e34,e14;
+      char e12,e23,e34,e14,e13,e24;
     };
     struct{
       char e[6];
@@ -86,15 +86,14 @@ protected:
   
 protected:
   //! Display the Signature
-  //! \param sep separator character between entries
-  string display(char sep) const;
+  string display() const;
   
 public:	
   //! Empty construcor 
   SignatureData();
   
   //! A constructor 
-  SignatureData(char l,Permutation p,char e12,char e23,char e34,char e14);
+  SignatureData(char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24);
   
   //! Construct a Signature form a string (obtain from a CSV file)
   //! \param str string source
@@ -107,6 +106,9 @@ public:
   //! Export the Signature to a CSV entry
   string csv() const;
 
+  //! Obtain the dir associated to the Signature
+  void makedir() const;
+  
   //! Obtain a filename from the Signature
   string filename() const;
 
@@ -157,7 +159,7 @@ public:
   Signature(string str);
   
   //! A constructor 
-  Signature(char l,Permutation p,char e12,char e23,char e34,char e14);
+  Signature(char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24);
 
   //! Return a Signature with same data except length which is length-2
   Signature comparison() const;
@@ -217,7 +219,7 @@ public:
   Signature(string str);
   
   //! A constructor 
-  Signature(char l,Permutation p,char e12,char e23,char e34,char e14);
+  Signature(char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24);
 
   //! Return a Signature with same data except length which is length-2
   Signature comparison() const;
@@ -286,12 +288,7 @@ SignatureData::braid_length() const{
 }
 inline string
 SignatureData::csv() const{
-  return display(',');
-}
-
-inline string
-SignatureData::filename() const{
-  return display('_');
+  return display();
 }
 
 inline bool
@@ -320,8 +317,8 @@ Signature<Artin>::Signature(string str):SignatureData(str){
 }
 
 inline
-Signature<Artin>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4):
-  SignatureData(l,p,e1,e2,e3,e4){
+Signature<Artin>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4,char e5,char e6):
+  SignatureData(l,p,e1,e2,e3,e4,e5,e6){
 }
 
 // Assume u is a geodesic word and v=u*i is not geodesic then the geodesic length of the
@@ -359,8 +356,8 @@ Signature<Dual>::Signature(string str):SignatureData(str){
 }
 
 inline
-Signature<Dual>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4):
-  SignatureData(l,p,e1,e2,e3,e4){
+Signature<Dual>::Signature(char l,Permutation p,char e1,char e2,char e3,char e4,char e5,char e6):
+  SignatureData(l,p,e1,e2,e3,e4,e5,e6){
 }
 
 // Assume u is a geodesic word and v=u*i is not geodesic then the geodesic length of the
@@ -391,7 +388,7 @@ Signature<Dual>::rank() const{
 
 template<Gen G> inline ostream&
 operator<<(ostream& os,const Signature<G>& s){
-  return os<<'['<<s.display(',')<<']';
+  return os<<'['<<s.display()<<']';
 }
 
 template<Gen G> void

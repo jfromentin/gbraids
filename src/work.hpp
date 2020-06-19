@@ -95,6 +95,7 @@ output(const Signature<G>& s,const unordered_set<Braid<G>>& braids){
   string filename=s.filename();
   fstream file;
   char l=s.braid_length();
+  s.makedir();
   file.open(DATA_DIR+filename.c_str(),ios::out|ios::app);
   for(auto it=braids.begin();it!=braids.end();++it){
     if(it->length()==l){
@@ -121,7 +122,7 @@ work(const Signature<G>& s_out){
   for(char i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
     if(i!=0){
       Signature<G> s_src=s_out.father(i);
-      //cout<<"-- "<<(int)i<<" --> "<<s_src<<" r "<<s_src.minimize().first<<" : "<<s_src.orbit()<<endl;
+      // cout<<"-- "<<(int)i<<" --> "<<s_src<<" r "<<s_src.minimize().first<<" : "<<s_src.orbit()<<endl;
       vector<Braid<G>> src;
       load(s_src,src);
       size_t nsrc=src.size();

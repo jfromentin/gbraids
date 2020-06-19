@@ -11,8 +11,8 @@ enum Gen{Artin,Dual};
 #define MAX_MSG_SIZE 1024
 #define MAX_CLIENTS 1024
 #define MAX_WORKERS 800
-#define DATA_DIR string("/mnt/m2/data/") //string("/workdir/lmpa/jfromentin/")
+#define DATA_DIR string("data/") //string("/workdir/lmpa/jfromentin/")
 
-#define GEN Dual
+#define GEN Artin
 
 #endif

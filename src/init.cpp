@@ -21,15 +21,15 @@ template<> void init<Artin>(){
   fstream file_csv;
   //length 0
   file_csv.open(DATA_DIR+"0.csv",ios::out);
-  Signature<Artin> s(0,Permutation(1,2,3,4),0,0,0,0);
+  Signature<Artin> s(0,Permutation(1,2,3,4),0,0,0,0,0,0);
   file_csv<<s.csv()<<",1,1"<<endl;
   file_csv.close();
 
   //Length 1
   char c;
   file_csv.open(DATA_DIR+"1.csv",ios::out);
-  write_braid<Artin>(-2,1,Permutation(1,3,2,4),0,-1,0,0,file_csv);
-  write_braid<Artin>(-3,1,Permutation(1,2,4,3),0,0,-1,0,file_csv);
+  write_braid<Artin>(-2,1,Permutation(1,3,2,4),0,-1,0,0,0,0,file_csv);
+  write_braid<Artin>(-3,1,Permutation(1,2,4,3),0,0,-1,0,0,0,file_csv);
   file_csv.close();
 }
 
@@ -37,15 +37,15 @@ template<> void init<Dual>(){
   fstream file_csv;
   //length 0
   file_csv.open(DATA_DIR+"0.csv",ios::out);
-  Signature<Dual> s(0,Permutation(1,2,3,4),0,0,0,0);
+  Signature<Dual> s(0,Permutation(1,2,3,4),0,0,0,0,0,0);
   file_csv<<s.csv()<<",1,1"<<endl;
   file_csv.close();
 
   //Length 1
   char c;
   file_csv.open(DATA_DIR+"1.csv",ios::out);
-  write_braid<Dual>(6,1,Permutation(4,2,3,1),1,0,-1,1,file_csv);
-  write_braid<Dual>(-6,1,Permutation(4,2,3,1),1,0,-1,-1,file_csv);
-  write_braid<Dual>(-5,5,1,Permutation(1,4,3,2),0,1,-1,0,file_csv);
+  write_braid<Dual>(6,1,Permutation(4,2,3,1),1,0,-1,1,1,-1,file_csv);
+  write_braid<Dual>(-6,1,Permutation(4,2,3,1),1,0,-1,-1,1,-1,file_csv);
+  write_braid<Dual>(-5,5,1,Permutation(1,4,3,2),0,1,-1,0,0,-1,file_csv);
   file_csv.close();
 }

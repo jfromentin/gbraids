@@ -25,13 +25,15 @@
 // SignatureData
 //---------------
 
-SignatureData::SignatureData(char l,Permutation p,char e1,char e2,char e3,char e4){
+SignatureData::SignatureData(char l,Permutation p,char e1,char e2,char e3,char e4,char e5,char e6){
   length=l;
   permutation=p;
   e[0]=e1;
   e[1]=e2;
   e[2]=e3;
   e[3]=e4;
+  e[4]=e5;
+  e[5]=e6;
 }
 
 SignatureData::SignatureData(string line){
@@ -39,18 +41,18 @@ SignatureData::SignatureData(string line){
   length=get_value(line,pos);
   int p=get_value(line,pos);
   permutation=p;
-  for(size_t k=0;k<4;++k){
+  for(size_t k=0;k<6;++k){
     e[k]=get_value(line,pos);
   }
 }
 
 string
-SignatureData::display(char sep) const{
+SignatureData::display() const{
   string res=to_string(length);
-  res+=sep;
+  res+=',';
   res+=permutation.to_string();
-  for(size_t k=0;k<4;++k){
-    res+=sep;
+  for(size_t k=0;k<6;++k){
+    res+=',';
     res+=to_string(e[k]);
   }
   return res;
@@ -98,12 +100,34 @@ SignatureData::get_value(string str,size_t& pos){
   return stoi(res);
 }
 
+string
+SignatureData::filename() const{
+  string res=to_string(length);
+  res+='/';
+  res+=permutation.to_string();
+  res+='/';
+  for(size_t k=0;k<6;++k){
+    res+='_';
+    res+=to_string(e[k]);
+  }
+  return res;
+}
+
+void
+SignatureData::makedir() const{
+  string res=DATA_DIR+to_string(length);
+  mkdir(res.c_str(),0777);
+  res+="/";
+  res+=permutation.to_string();
+  mkdir(res.c_str(),0777);
+}
+
 // Two Signatures are equal if all its values are
 bool
 SignatureData::operator==(const SignatureData& s) const{
   if(length!=s.length) return false;
   if(permutation!=s.permutation) return false;
-  for(size_t k=0;k<4;++k){
+  for(size_t k=0;k<6;++k){
     if(e[k]!=s.e[k]) return false;
   }
   return true;
@@ -114,7 +138,7 @@ bool
 SignatureData::operator<(const SignatureData& s) const{
   if(length!=s.length) return length<s.length;
   if(permutation!=s.permutation) return permutation<s.permutation;
-  for(size_t k=0;k<4;++k){
+  for(size_t k=0;k<6;++k){
     if(e[k]!=s.e[k]) return e[k]<s.e[k];
   }
   return false;
@@ -146,6 +170,12 @@ SignatureData::update_interlacing_Artin(char* e,Permutation p,Generator i){
   case 14:
     e[3]+=si;
     break;
+  case 13:
+    e[4]+=si;
+    break;
+  case 24:
+    e[5]+=si;
+    break;
   default:
     assert(false);
     break;
@@ -166,6 +196,8 @@ SignatureData::update_interlacing_Dual(char* e,Permutation p,Generator g){
   e[1]+=dual_interlacing_number(ag,sg,pi(2),pi(3));
   e[2]+=dual_interlacing_number(ag,sg,pi(3),pi(4));
   e[3]+=dual_interlacing_number(ag,sg,pi(1),pi(4));
+  e[4]+=dual_interlacing_number(ag,sg,pi(1),pi(3));
+  e[5]+=dual_interlacing_number(ag,sg,pi(2),pi(4));
 }
 
 
@@ -221,7 +253,7 @@ Signature<Artin>::negate() const{
   res.length=length;
   res.permutation=permutation;
   res.full_e=full_e;
-  for(size_t k=0;k<4;++k){
+  for(size_t k=0;k<6;++k){
     res.e[k]*=-1;
   }
   return res;
@@ -247,6 +279,9 @@ Signature<Artin>::phi() const{
   res.e23=e23;
   res.e34=e12;
   res.e14=e14;
+  res.e13=e24;
+  res.e24=e13;
+  //cout<<endl<<*this<<"->"<<res<<endl;
   return res;
 }
 
@@ -324,23 +359,29 @@ Signature<Dual>::phi() const{
   res.e23=e12;
   res.e34=e23;
   res.e14=e34+1;
+  res.e13=e24+1;
+  res.e24=e13;
   char k=permutation(4);
   switch(k){
   case 1:
     res.e12-=1;
     res.e23-=1;
+    res.e24-=1;
     break;
   case 2:
     res.e23-=1;
     res.e34-=1;
+    res.e13-=1;
     break;
   case 3:
     res.e34-=1;
     res.e14-=1;
+    res.e24-=1;
     break;
   case 4:
     res.e12-=1;
     res.e14-=1;
+    res.e13-=1;
     break;
   default:
     break;

@@ -2,20 +2,11 @@
 #include "init.hpp"
 #include "work.hpp"
 #include "signature.hpp"
-#include <boost/align/aligned_allocator.hpp>
 #include <omp.h>
 #include <unordered_set>
 using namespace std;
 
 template<Gen G> void run(){
-  for(int i=-6;i<=6;++i){
-    if(i!=0){
-      int c=Braid<Dual>::code(i);
-      int d=Braid<Dual>::decode(c);
-      cout<<i<<"->"<<c<<"->"<<d<<endl;
-    }
-  }
-
   if(G==Artin){
     cout<<"***************************"<<endl;
     cout<<"* Gbraids - Artin - Alone *"<<endl;
@@ -33,7 +24,7 @@ template<Gen G> void run(){
   load(1,prec);
 						
   next_signatures(prec,cur);
-  for(char l=2;l<=20;++l){
+  for(char l=2;l<=10;++l){
     cur.clear();
     cout<<"------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;

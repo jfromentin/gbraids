@@ -2,7 +2,7 @@ EXE_W		= gb-worker
 EXE_S 		= gb-server
 EXE_I 		= gb-interface
 EXE_A   	= gb-alone
-CPP 		= g++ 
+CPP 		= g++-8 
 CFLAGS		= --std=c++11 -O3 -DNDEBUG -I ./tclap/include
 
 all: $(EXE_S) $(EXE_W) $(EXE_I) $(EXE_A)
