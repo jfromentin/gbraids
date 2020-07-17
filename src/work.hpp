@@ -47,7 +47,7 @@ template<Gen G> void output(const Signature<G>& s,const unordered_set<Braid<G>>&
 
 //! Enumerate all braids of signature s and record them in a file
 //! \param s Signature to consider
-template<Gen G> size_t work(const Signature<G>& s);
+template<Gen G> pair<size_t,size_t> work(const Signature<G>& s);
 
 
 //***********************
@@ -106,42 +106,38 @@ output(const Signature<G>& s,const unordered_set<Braid<G>>& braids){
   file.close();
 }
 
-template<Gen G> size_t
+template<Gen G> pair<size_t,size_t>
 work(const Signature<G>& s_out){
-  //cout<<endl<<endl<<"s_out = "<<s_out<<endl;
   Signature<G> s_cmp=s_out.comparison();
   unordered_set<Braid<G>> cmp;
   load(s_cmp,cmp);
-  /*cout<<"s_cmp = "<<s_cmp<<endl;
-  cout<<"cmp = [";
-  for(auto it=cmp.begin();it!=cmp.end();++it){
-   cout<<' '<<*it;
-   }
-   cout<<" ]"<<endl;*/
-  size_t n=0;
+  size_t n_sph=0;
+  size_t n_geo=0;
   for(char i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
     if(i!=0){
       Signature<G> s_src=s_out.father(i);
-      // cout<<"-- "<<(int)i<<" --> "<<s_src<<" r "<<s_src.minimize().first<<" : "<<s_src.orbit()<<endl;
       vector<Braid<G>> src;
       load(s_src,src);
       size_t nsrc=src.size();
-      //cout<<"-- src = "<<src<<endl;
       for(size_t k=0;k<nsrc;++k){
 	Braid<G> b=src[k];
-	//cout<<b<<" * "<<(int)i<<endl;
 	b*=i;
-	//cout<<" = "<<b<<endl;
 	auto p_ins=cmp.insert(b);
 	if(p_ins.second){
-	  //cout<<"Add "<<b<<endl;
-	  ++n;
+	  ++n_sph;
+	  ++n_geo;
+	}
+	else{
+	  if(p_ins.first->length()==b.length()){
+	    ++n_geo;
+	    
+	  }
 	}
       }
     }
   }
-  if(n!=0) output(s_out,cmp);
-  return n;
+  if(n_sph!=0) output(s_out,cmp);
+  return pair<size_t,size_t>(n_sph,n_geo);
 }
 
 #endif
