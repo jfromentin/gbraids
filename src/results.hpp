@@ -8,8 +8,7 @@
 struct Results{
   size_t n_amp[MAXLEN+1];
   size_t n_red[MAXLEN+1];
-  size_t n_sph[MAXLEN+1];
-  size_t n_geo[MAXLEN+1];
+  size_t n[MAXLEN+1];
   Results();
   void reset();
 };
@@ -25,8 +24,7 @@ public:
   ResultsReducer();
   size_t& n_amp(size_t i);
   size_t& n_red(size_t i);
-  size_t& n_sph(size_t i);
-  size_t& n_geo(size_t i);
+  size_t& n(size_t i);
   void reset();
 };
 
@@ -42,8 +40,7 @@ Results::reset(){
   for(size_t i=0;i<=MAXLEN;++i){
     n_amp[i]=0;
     n_red[i]=0;
-    n_sph[i]=0;
-    n_geo[i]=0;
+    n[i]=0;
   }
 }
 
@@ -57,8 +54,7 @@ ResultsReducer::Monoid::reduce(Results* left,Results* right){
   for(size_t i=0;i<=MAXLEN;++i){
     left->n_amp[i]+=right->n_amp[i];
     left->n_red[i]+=right->n_red[i];
-    left->n_sph[i]+=right->n_sph[i];
-    left->n_geo[i]+=right->n_geo[i];
+    left->n[i]+=right->n[i];
   }
 }
 
@@ -78,12 +74,8 @@ ResultsReducer::n_red(size_t i){
 }
 
 inline size_t&
-ResultsReducer::n_sph(size_t i){
-  return imp_.view().n_sph[i];
+ResultsReducer::n(size_t i){
+  return imp_.view().n[i];
 }
 
-inline size_t&
-ResultsReducer::n_geo(size_t i){
-  return imp_.view().n_geo[i];
-}
 #endif

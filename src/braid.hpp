@@ -296,7 +296,7 @@ inline void
 Braid<Artin>::phi(){
   for(size_t i=0;i<len;++i){
     char v=tab[i];
-    tab[i]=(v>0)?4-v:-4-v;
+    tab[i]=(v>0)?STRANDS-v:-STRANDS-v;
   }
 }
 

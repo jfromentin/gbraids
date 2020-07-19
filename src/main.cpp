@@ -12,33 +12,40 @@ using namespace std;
 ResultsReducer cilk_result;
 
 template<Gen G> void treat(int l,const Signature<G>& s){
-  pair<size_t,size_t> res=work(s);
-  size_t ns=res.first;
-  size_t ng=res.second;
+  size_t n=work(s);
   int rank=s.rank();
   //  if(ns!=0) file<<s.csv()<<","<<rank<<","<<ns<<","<<ng<<endl;
-  cilk_result.n_sph(l)+=(rank*ns);
-  cilk_result.n_geo(l)+=(rank*ng);
+  cilk_result.n(l)+=(rank*n);
 }
 
 template<Gen G> void run(){
   if(G==Artin){
-    cout<<"***************************"<<endl;
-    cout<<"* Gbraids - Artin - Alone *"<<endl;
-    cout<<"***************************"<<endl;
+    cout<<"*******************"<<endl;
+    cout<<"* Gbraids - Artin *"<<endl;
+    cout<<"*******************"<<endl;
   }
   else{
-    cout<<"**************************"<<endl;
-    cout<<"* Gbraids - Dual - Alone *"<<endl;
-    cout<<"**************************"<<endl;
+    cout<<"******************"<<endl;
+    cout<<"* Gbraids - dual *"<<endl;
+    cout<<"******************"<<endl;
   }
+  cout<<"Number of strands : "<<STRANDS<<endl;
+  cout<<"Combinatorics type : ";
+#ifdef SPHERICAL
+  cout<<"spherical";
+#else
+  cout<<"geodesic";
+#endif
+  cout<<"."<<endl;
   cout<<"-> Init ";
-  init<G>();
+  init<G,STRANDS>();
   cout<<"... done."<<endl;
   set<Signature<G>> prec,cur;
   load(1,prec);
   cout<<" Workers number is "<<__cilkrts_get_nworkers()<<endl;					
   next_signatures(prec,cur);
+  //cout<<"prec = "<<prec<<endl;
+  //cout<<" cur = "<<cur<<endl;
   for(char l=2;l<=20;++l){
     cur.clear();
     cout<<"------------------------"<<endl;
@@ -50,10 +57,10 @@ template<Gen G> void run(){
     size_t n_geo=0;
     for(auto it=cur.begin();it!=cur.end();++it){
       cilk_spawn treat(l,*it);
+      //treat(l,*it);
     }
     cilk_sync;
-    cout<<"-> "<<cilk_result.n_sph(l)<<" braids."<<endl;
-    cout<<"-> "<<cilk_result.n_geo(l)<<" geodesic words."<<endl;
+    cout<<"-> "<<cilk_result.n(l)<<endl;
     swap(cur,prec);
   }
 }

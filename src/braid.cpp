@@ -83,8 +83,8 @@ void
 Braid<Dual>::apply(const typename Signature<Dual>::Action& action){
   for(size_t i=0;i<len;++i){
     char v=tab[i];
-    if(v>0) tab[i]=phi(v,4-action.phi_degree);
-    else tab[i]=-phi(-v,4-action.phi_degree);
+    if(v>0) tab[i]=phi(v,STRANDS-action.phi_degree);
+    else tab[i]=-phi(-v,STRANDS-action.phi_degree);
   }
 }
 
@@ -142,12 +142,27 @@ Braid<Dual>::coordinates() const{
 //------------------
 // Braid<Dual>::phi
 //------------------
+
 char
 Braid<Dual>::phi(char g,int d){
   switch(d){
   case 0:
     return g;
     break;
+#if STRANDS == 3
+  case 1:
+    {
+      char data[3]={2,3,1};
+      return data[g-1];
+    }
+    break;
+  case 2:
+    {
+      char data[3]={3,1,2};
+      return data[g-1];
+    }
+    break;
+#elif STRANDS ==4 
   case 1:
     {
       char data[6]={2,4,5,6,3,1};
@@ -166,6 +181,9 @@ Braid<Dual>::phi(char g,int d){
       return data[g-1];
     }
     break;
+#else
+#error "Bad value of STRANDS"
+#endif
   default:
     assert(false);
     break;

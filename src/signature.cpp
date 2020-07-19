@@ -275,13 +275,23 @@ Signature<Artin>::phi() const{
   Signature res;
   res.length=length;
   res.permutation=permutation.phi();
+#if STRANDS==3
+  res.e12=e23;
+  res.e23=e12;
+  res.e13=e13;
+  res.e14=e14;
+  res.e24=e24;
+  res.e34=e34;
+#elif STRANDS==4
   res.e12=e34;
   res.e23=e23;
   res.e34=e12;
   res.e14=e14;
   res.e13=e24;
   res.e24=e13;
-  //cout<<endl<<*this<<"->"<<res<<endl;
+#else
+#error "Bad value of STRANDS"
+#endif
   return res;
 }
 
@@ -355,6 +365,31 @@ Signature<Dual>::phi() const{
   Signature res;
   res.length=length;
   res.permutation=permutation.phi_dual();
+#if STRANDS==3
+  res.e12=e13+1;
+  res.e23=e12;
+  res.e34=e34;
+  res.e14=e14;
+  res.e13=e23+1;
+  res.e24=e24;
+  char k=permutation(3);
+  switch(k){
+  case 1:
+    res.e12-=1;
+    res.e23-=1;
+    break;
+  case 2:
+    res.e23-=1;
+    res.e13-=1;
+    break;
+  case 3:
+    res.e12-=1;
+    res.e13-=1;
+    break;
+  default:
+    break;
+  }
+#elif STRANDS==4
   res.e12=e14+1;
   res.e23=e12;
   res.e34=e23;
@@ -386,6 +421,7 @@ Signature<Dual>::phi() const{
   default:
     break;
   }
+#endif
   return res;
 }
 
@@ -415,7 +451,7 @@ next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst){
     Signature<Artin> s_phi=s.phi();
     Signature<Artin> s_neg=s.negate();
     Signature<Artin> s_phi_neg=s_phi.negate();
-    for(Generator i=-3;i<=3;++i){
+    for(Generator i=-Signature<Artin>::nbgen;i<=Signature<Artin>::nbgen;++i){
       if(i!=0){
 	Signature<Artin> son=s.son(i);
 	if(son.is_minimal()) dst.insert(son);
@@ -434,8 +470,9 @@ void
 next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst){
   for(auto it=src.begin();it!=src.end();++it){
     set<Signature<Dual>> orbit=it->orbit();
+    //cout<<orbit<<endl;
     for(auto it2=orbit.begin();it2!=orbit.end();++it2){
-      for(Generator i=-6;i<=6;++i){
+      for(Generator i=-Signature<Dual>::nbgen;i<=Signature<Dual>::nbgen;++i){
 	if(i!=0){
 	  Signature<Dual> son=it2->son(i);
 	  if(son.is_minimal()) dst.insert(son);

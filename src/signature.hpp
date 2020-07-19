@@ -148,7 +148,14 @@ public:
     bool apply_phi;
     bool apply_negation;
   };
+
+#if STRANDS==3
+  static const char nbgen=2;
+#elif STRANDS==4
   static const char nbgen=3;
+#else
+#error "Bad value of STRANDS"
+#endif
   
   //! Empty constructor
   Signature();
@@ -209,7 +216,13 @@ public:
   struct Action{
     int phi_degree;
   };
+#if STRANDS==3
+  static const char nbgen=3;
+#elif STRANDS==4
   static const char nbgen=6;
+#else
+#error "Bad value of STRANDS"
+#endif
   //! Empty constructor
   Signature();
   
@@ -270,6 +283,7 @@ template<Gen G> void load(int l,set<Signature<G>>& signatures);
 //! \param dst the output set, that will eventually contain all signatures of length l+1
 void next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst);
 void next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst);
+
 //********************
 //* Inline functions *
 //********************

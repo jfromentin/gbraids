@@ -189,10 +189,19 @@ inline Permutation
 Permutation::phi() const{
   Permutation res;
   res.tab[0]=0;
+#if STRANDS==3
+  res.tab[1]=4-tab[3];
+  res.tab[2]=4-tab[2];
+  res.tab[3]=4-tab[1];
+  res.tab[4]=tab[4];
+#elif STRANDS==4
   res.tab[1]=5-tab[4];
   res.tab[2]=5-tab[3];
   res.tab[3]=5-tab[2];
   res.tab[4]=5-tab[1];
+#else
+#error "Bad value of STRANDS"
+#endif
   return res;
 }
 
@@ -200,6 +209,15 @@ inline Permutation
 Permutation::phi_dual() const{
   Permutation res;
   res.tab[0]=0;
+#if STRANDS==3
+  char c=tab[3];
+  res.tab[1]=(c==3)?1:c+1;
+  c=tab[1];
+  res.tab[2]=(c==3)?1:c+1;
+  c=tab[2];
+  res.tab[3]=(c==3)?1:c+1;
+  res.tab[4]=tab[4];
+#elif STRANDS==4
   char c=tab[4];
   res.tab[1]=(c==4)?1:c+1;
   c=tab[1];
@@ -208,6 +226,9 @@ Permutation::phi_dual() const{
   res.tab[3]=(c==4)?1:c+1;
   c=tab[3];
   res.tab[4]=(c==4)?1:c+1;
+#else
+  #error "Bad value of STRANDS"
+#endif
   return res;
 }
 

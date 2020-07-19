@@ -43,11 +43,11 @@ template<Gen G,class T> void load(const Signature<G>& s,T& dst,typename Signatur
 //! Write in a file certain braid with a given signature
 //! \param s Signature to consider
 //! \param braids a set of braids
-template<Gen G> void output(const Signature<G>& s,const unordered_set<Braid<G>>& braids);
+template<Gen G,class T> void output(const Signature<G>& s,const T& braids);
 
 //! Enumerate all braids of signature s and record them in a file
 //! \param s Signature to consider
-template<Gen G> pair<size_t,size_t> work(const Signature<G>& s);
+template<Gen G> size_t work(const Signature<G>& s);
 
 
 //***********************
@@ -84,13 +84,12 @@ load(const Signature<G>& s,T& dst,typename Signature<G>::Action& action){
       b.apply(action);
       //cout<<b<<endl;
       insert(dst,b);
-      
     }
   }
 }
 
-template<Gen G> void
-output(const Signature<G>& s,const unordered_set<Braid<G>>& braids){
+template<Gen G,class T> void
+output(const Signature<G>& s,const T& braids){
   //cout<<"Output "<<s<<endl;
   string filename=s.filename();
   fstream file;
@@ -100,44 +99,53 @@ output(const Signature<G>& s,const unordered_set<Braid<G>>& braids){
   for(auto it=braids.begin();it!=braids.end();++it){
     if(it->length()==l){
       it->write(file);
-      //cout<<"  -- "<<*it<<endl;
     }
   }
   file.close();
 }
 
-template<Gen G> pair<size_t,size_t>
+template<Gen G> size_t
 work(const Signature<G>& s_out){
+  //cout<<"Work on "<<s_out<<endl;
   Signature<G> s_cmp=s_out.comparison();
   unordered_set<Braid<G>> cmp;
+#ifndef SPHERICAL
+  vector<Braid<G>> out;
+#endif
   load(s_cmp,cmp);
-  size_t n_sph=0;
-  size_t n_geo=0;
+  size_t n=0;
   for(char i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
     if(i!=0){
       Signature<G> s_src=s_out.father(i);
+      //cout<<(int)i<<" => "<<s_src<<endl;
       vector<Braid<G>> src;
       load(s_src,src);
       size_t nsrc=src.size();
       for(size_t k=0;k<nsrc;++k){
 	Braid<G> b=src[k];
 	b*=i;
+#ifdef SPHERICAL
 	auto p_ins=cmp.insert(b);
 	if(p_ins.second){
-	  ++n_sph;
-	  ++n_geo;
+	  ++n;
+	  //cout<<b<<endl;
 	}
-	else{
-	  if(p_ins.first->length()==b.length()){
-	    ++n_geo;
-	    
-	  }
+#else
+	if(cmp.find(b)==cmp.end()){
+	  out.push_back(b);
+	  ++n;
 	}
+#endif
       }
     }
   }
-  if(n_sph!=0) output(s_out,cmp);
-  return pair<size_t,size_t>(n_sph,n_geo);
+#ifdef SPHERICAL
+  if(n!=0) output(s_out,cmp);
+#else
+  //cout<<"Out = "<<out<<endl;
+  if(n!=0) output(s_out,out);
+#endif
+  return n;
 }
 
 #endif

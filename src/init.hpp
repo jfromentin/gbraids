@@ -27,7 +27,7 @@ using namespace std;
 template<Gen G> void write_braid(char g,char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24,fstream& stdfile_csv);
 template<Gen G> void write_braid(char g1,char g2,char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24,fstream& stdfile_csv);
 
-template<Gen G> void init();
+template<Gen G,int S> void init();
 
 template<Gen G> inline void
 write_braid(char g,char l,Permutation p,char e12,char e23,char e34,char e14,char e13,char e24,fstream& file_csv ){
