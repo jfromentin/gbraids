@@ -55,6 +55,8 @@ protected:
   };
   //! Length of the braid
   size_t len;
+  //! Number of geodesic representatives
+  mutable size_t geo;
   
 public:
   //! Empty constructor
@@ -63,6 +65,9 @@ public:
   //! Recopy constructor 
   BraidData(const BraidData&);
 
+  //! Return a reference to number of geodesic reprensentatives of the braid
+  size_t& geodesics() const;
+  
   //! Return he length of the braid
   size_t length() const;
 
@@ -214,6 +219,7 @@ BraidData::BraidData(){
   tab64[2]=0;
   tab64[3]=0;
   len=0;
+  geo=1;
 }
 
 inline
@@ -223,6 +229,12 @@ BraidData::BraidData(const BraidData& b){
   tab64[2]=b.tab64[2];
   tab64[3]=b.tab64[3];
   len=b.len;
+  geo=b.geo;
+}
+
+inline size_t&
+BraidData::geodesics() const{
+  return geo;
 }
 
 inline size_t
@@ -237,6 +249,7 @@ BraidData::operator=(const BraidData& b){
   tab64[2]=b.tab64[2];
   tab64[3]=b.tab64[3];
   len=b.len;
+  geo=b.geo;
   return *this;
 }
 
@@ -270,7 +283,7 @@ Braid<Artin>::code(char c){
 
 inline size_t
 Braid<Artin>::compressed_size(size_t l){
-  return (l-1)/3+1;
+  return (l-1)/3+1+sizeof(size_t);
 }
 
 inline DynnikovCoordinates
@@ -324,7 +337,7 @@ Braid<Dual>::code(char c){
 
 inline size_t
 Braid<Dual>::compressed_size(size_t l){
-  return (l-1)/2+1;
+  return (l-1)/2+1+sizeof(size_t);
 }
 
 inline char

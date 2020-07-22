@@ -35,7 +35,9 @@ write_braid(char g,char l,Permutation p,char e12,char e23,char e34,char e14,char
   Signature<G> s(l,p,e12,e23,e34,e14,e13,e24);
   s.makedir();
   file_data.open(DATA_DIR+s.filename(), ios::out | ios::binary);
-  char c=Braid<G>::code(g);file_data.write(&c,1);
+  Braid<G> b;
+  b*=g;
+  b.write(file_data);
   file_data.close();
   file_csv<<s.csv()<<','<<s.rank()<<",1"<<endl;
 }
@@ -46,8 +48,11 @@ write_braid(char g1,char g2,char l,Permutation p,char e12,char e23,char e34,char
   Signature<G> s(l,p,e12,e23,e34,e14,e13,e24);
   s.makedir();
   file_data.open(DATA_DIR+s.filename(), ios::out | ios::binary);
-  char c=Braid<G>::code(g1);file_data.write(&c,1);
-  c=Braid<G>::code(g2);file_data.write(&c,1);
+  Braid<G> b1,b2;
+  b1*=g1;
+  b2*=g2;
+  b1.write(file_data);
+  b2.write(file_data);
   file_data.close();
   file_csv<<s.csv()<<','<<s.rank()<<",2"<<endl;
 }

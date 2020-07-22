@@ -16,7 +16,7 @@
 */
 
 #include "braid.hpp"
-
+#include <cstring>
 //****************
 //* Braid<Artin> *
 //****************
@@ -26,8 +26,9 @@
 //---------------------
 
 Braid<Artin>::Braid(char* buffer,size_t l){
+  memcpy(&geo,buffer,sizeof(size_t));
   size_t i=0;
-  size_t j=0;
+  size_t j=sizeof(size_t);
   while(i<l){
     uchar c=buffer[j++];
     tab[i++]=decode(c%6);
@@ -43,6 +44,7 @@ Braid<Artin>::Braid(char* buffer,size_t l){
 
 void
 Braid<Artin>::write(fstream& file) const{
+  file.write((const char*)&geo,sizeof(size_t));
   size_t size=(len-1)/3+1;
   char buffer[size];
   size_t i=0;
@@ -65,8 +67,9 @@ Braid<Artin>::write(fstream& file) const{
 //---------------------
 
 Braid<Dual>::Braid(char* buffer,size_t l){
+  memcpy(&geo,buffer,sizeof(size_t));
   size_t i=0;
-  size_t j=0;
+  size_t j=sizeof(size_t);
   while(i<l){
     uchar c=buffer[j++];
     tab[i++]=decode(c%12);
@@ -197,6 +200,7 @@ Braid<Dual>::phi(char g,int d){
 
 void
 Braid<Dual>::write(fstream& file) const{
+  file.write((const char*)&geo,sizeof(size_t));
   size_t size=(len-1)/2+1;
   char buffer[size];
   size_t i=0;

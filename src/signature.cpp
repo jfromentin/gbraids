@@ -446,6 +446,7 @@ Signature<Dual>::son(Generator i) const{
 
 void
 next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst){
+  cout<<"Next signatures"<<endl;
   for(auto it=src.begin();it!=src.end();++it){
     Signature<Artin> s=*it;
     Signature<Artin> s_phi=s.phi();
