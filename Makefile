@@ -54,4 +54,4 @@ $(EXE_A):src/init.o src/braid.o src/dynnikov.o src/signature.o src/main-alone.cp
 
 
 clean:
-	$(RM) $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A)  data/* dist/*.o dist/*~ src/*.o src/*~
+	$(RM) -rf $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A)  data/* dist/*.o dist/*~ src/*.o src/*~

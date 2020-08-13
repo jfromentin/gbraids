@@ -57,8 +57,10 @@ template<Gen G> pair<size_t,size_t> work(const Signature<G>& s);
 
 template<Gen G,class T> void
 load(const Signature<G>& s,T& dst){
+  //cout<<"Load "<<s<<endl;
   if(not s.has_length_zero()){
     pair<Signature<G>,typename Signature<G>::Action> res=s.minimize();
+    //cout<<"Reduced : "<<res.first<<endl;
     load(res.first,dst,res.second);
   }
   else{
@@ -103,14 +105,18 @@ output(const Signature<G>& s,const T& braids){
 
 template<Gen G> pair<size_t,size_t>
 work(const Signature<G>& s_out){
+  //cout<<"*** Work on "<<s_out<<endl;
   Signature<G> s_cmp=s_out.comparison();
   unordered_set<Braid<G>> cmp;
+  //cout<<"Coparison "<<endl;
   load(s_cmp,cmp);
   size_t ns=0;
   size_t ng=0;
   for(char i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
     if(i!=0){
+
       Signature<G> s_src=s_out.father(i);
+      //cout<<"Father "<<(int)i<<" : "<<s_src<<endl;
       vector<Braid<G>> src;
       load(s_src,src);
       size_t nsrc=src.size();
@@ -119,6 +125,7 @@ work(const Signature<G>& s_out){
 	b*=i;
 	auto p_ins=cmp.insert(b);
 	if(p_ins.second){
+	  //cout<<"--> add "<<b<<endl;
 	  ++ns;
 	  ng+=b.geodesics();
 	}

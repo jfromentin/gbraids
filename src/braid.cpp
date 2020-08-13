@@ -17,6 +17,25 @@
 
 #include "braid.hpp"
 #include <cstring>
+
+//*************
+//* BraidData *
+//*************
+
+void
+BraidData::inverse(){
+  size_t i=0;
+  size_t j=length()-1;
+  while(i<j){
+    char temp=-tab[i];
+    tab[i]=-tab[j];
+    tab[j]=temp;
+    ++i;
+    --j;
+  }
+  if(i==j) tab[i]*=-1;
+}
+
 //****************
 //* Braid<Artin> *
 //****************

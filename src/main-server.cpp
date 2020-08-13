@@ -43,7 +43,7 @@ int main(int argc,char** argv){
   fstream file_bilan;
   file_bilan.open(DATA_DIR+"bilan.csv",ios::out);
   file_bilan<<"length,tasks,computed braids,braids,geodesics"<<endl;
-  while(l<=32){
+  while(l<=2){
     cur.clear();
     cout<<"---------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;
@@ -61,9 +61,9 @@ int main(int argc,char** argv){
     }while(server.has_unfinished_tasks());
     fstream file;
     file.open(DATA_DIR+to_string((int)l)+".csv",ios::out);
-    size_t ns=0;
-    size_t ng=0;
-    size_t nb=0;
+    uint64_t ns=0;
+    uint64_t ng=0;
+    uint64_t nb=0;
     file<<"length,permutation,l12,l23,l34,l14,rank,braids,geodesics"<<endl;
     for(size_t i=0;i<nb_tasks;++i){
       GTaskOutput& output=*((GTaskOutput*)tasks[i].get_output());

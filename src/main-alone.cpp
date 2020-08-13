@@ -17,20 +17,24 @@ int main(int argc,char** argv){
   init<GEN,STRANDS>();
   cout<<"... done."<<endl;
   set<Signature<GEN>> prec,cur;
-  load(1,prec);						
+  load(1,prec);
+  cout<<"Prec "<<prec<<endl;
   next_signatures(prec,cur);
-  for(char l=2;l<=8;++l){
+  cout<<"Cur "<<cur<<endl;
+  //exit(0);
+  for(char l=2;l<=20;++l){
+    
     cur.clear();
     cout<<"------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;
     next_signatures(prec,cur);
     fstream file;
     file.open(DATA_DIR+to_string((int)l)+".csv",ios::out);
-    size_t ns=0;
-    size_t ng=0;
-    size_t nb=0;
+    uint64_t ns=0;
+    uint64_t ng=0;
+    uint64_t nb=0;
     for(auto it=cur.begin();it!=cur.end();++it){
-      pair<size_t,size_t> res=work(*it);
+      pair<uint64_t,uint64_t> res=work(*it);
       int rank=it->rank();
       nb+=res.first;
       ns+=rank*res.first;

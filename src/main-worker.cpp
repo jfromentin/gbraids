@@ -17,7 +17,7 @@ int main(int argc,char** argv){
     const Signature<GEN>& signature=input->signature;
     GTaskOutput output;
     auto start = std::chrono::system_clock::now();
-    pair<size_t,size_t> p=work(signature);
+    pair<uint64_t,uint64_t> p=work(signature);
     output.ns=p.first;
     output.ng=p.second;
     task.set_output((char*)&output,sizeof(output));

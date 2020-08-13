@@ -8,7 +8,7 @@ struct GTaskInput{
 };
 
 struct GTaskOutput{
-  size_t ns,ng;
+  uint64_t ns,ng;
 };
 
 bool compare_gtask(const Task& t1,const Task& t2);

@@ -4,9 +4,8 @@
 enum Gen{Artin,Dual};
 #define STRANDS 4
 #define MAXLEN 32
-#define DATA_DIR string("/mnt/m2/data/") //string("/workdir/lmpa/jfromentin/")
-#define GEN Dual
-//#define SPHERICAL
+#define DATA_DIR string("data/") //string("/workdir/lmpa/jfromentin/")
+#define GEN Artin
 #define SERVER_IP "127.0.0.1" //"192.168.1.3" //Orval 02
 #define SERVER_PORT 5555
 #define MAX_MSG_SIZE 1024
