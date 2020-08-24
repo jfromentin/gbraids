@@ -22,7 +22,11 @@ int main(int argc,char** argv){
   next_signatures(prec,cur);
   cout<<"Cur "<<cur<<endl;
   //exit(0);
+<<<<<<< HEAD
   for(char l=2;l<=24;++l){
+=======
+  for(char l=2;l<=20;++l){
+>>>>>>> e1c2d0179e8933165b0bfb4e90f20ec19575cf66
     
     cur.clear();
     cout<<"------------------------"<<endl;
