@@ -17,7 +17,7 @@
 
 #ifndef DYNNIKOV_HPP
 #define DYNNIKOV_HPP
-
+//#include <boost/multiprecision/cpp_int.hpp>
 #include <cstddef>
 #include <cstdint>
 
@@ -26,8 +26,8 @@
 //* Macros *
 //**********
 
-using Int = int64_t;
-using UInt = uint64_t;
+using Int = __int128;//int128_t;
+//using UInt = uint128_t;
 
 //*********************
 //* Class declaration *
@@ -44,10 +44,10 @@ private:
   //!Dynnikov's coordinates of a braid on 4 strands
   union{
     struct{
-      int64_t a[4],b[4];
+     Int a[4],b[4];
     };
     struct{
-      int64_t c[8];
+     Int c[8];
     };
   };
   

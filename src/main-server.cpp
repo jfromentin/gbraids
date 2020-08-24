@@ -43,11 +43,7 @@ int main(int argc,char** argv){
   fstream file_bilan;
   file_bilan.open(DATA_DIR+"bilan.csv",ios::out);
   file_bilan<<"length,tasks,computed braids,braids,geodesics"<<endl;
-<<<<<<< HEAD
   while(l<=25){
-=======
-  while(l<=2){
->>>>>>> e1c2d0179e8933165b0bfb4e90f20ec19575cf66
     cur.clear();
     cout<<"---------------------------"<<endl;
     cout<<"Length : "<<(int)l<<endl;

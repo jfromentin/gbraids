@@ -323,10 +323,7 @@ Braid<Artin>::phi(){
 
 inline bool
 Braid<Artin>::operator==(const Braid<Artin>& b) const{
-  if(coordinates()==b.coordinates()){
-    return handle_equiv(b);
-  }
-  return false;
+  return coordinates()==b.coordinates();
 }
 
 //-------------
