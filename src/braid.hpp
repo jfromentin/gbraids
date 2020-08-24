@@ -24,6 +24,7 @@
 #include "dynnikov.hpp"
 #include "permutation.hpp"
 #include "signature.hpp"
+#include "memory.hpp"
 
 using namespace std;
 
@@ -67,6 +68,9 @@ public:
 
   //! Return a reference to number of geodesic reprensentatives of the braid
   size_t& geodesics() const;
+
+  //! Inverse the current brai
+  void inverse();
   
   //! Return he length of the braid
   size_t length() const;
@@ -115,11 +119,14 @@ public:
 
   //! Return Dynnikov's coordinates of the braid
   DynnikovCoordinates coordinates() const;
+
+  //! Test is the braid b is equivalent to the current one using handle reduction
+  bool handle_equiv(const Braid& b) const;
   
   //! Negate the current braid, sending i to -i. Warning, the braid so obtained is not the inverse
   //! of the original one
   void negate();
-  
+
   //! Affectation constructor
   Braid& operator=(const Braid&);
   
@@ -272,8 +279,9 @@ Braid<Artin>::Braid(const Braid<Artin>& b):BraidData(b){
 
 inline void
 Braid<Artin>::apply(typename Signature<Artin>::Action& action){
-  if(action.apply_phi) phi();
+  if(action.apply_inverse) inverse();
   if(action.apply_negation) negate();
+  if(action.apply_phi) phi();
 }
 
 inline uchar
@@ -315,7 +323,10 @@ Braid<Artin>::phi(){
 
 inline bool
 Braid<Artin>::operator==(const Braid<Artin>& b) const{
-  return coordinates()==b.coordinates();
+  if(coordinates()==b.coordinates()){
+    return handle_equiv(b);
+  }
+  return false;
 }
 
 //-------------

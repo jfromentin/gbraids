@@ -17,6 +17,25 @@
 
 #include "braid.hpp"
 #include <cstring>
+
+//*************
+//* BraidData *
+//*************
+
+void
+BraidData::inverse(){
+  size_t i=0;
+  size_t j=length()-1;
+  while(i<j){
+    char temp=-tab[i];
+    tab[i]=-tab[j];
+    tab[j]=temp;
+    ++i;
+    --j;
+  }
+  if(i==j) tab[i]*=-1;
+}
+
 //****************
 //* Braid<Artin> *
 //****************
@@ -56,6 +75,65 @@ Braid<Artin>::write(fstream& file) const{
     buffer[k++]=c;
   }
   file.write(buffer,size);
+}
+
+bool Braid<Artin>::handle_equiv(const Braid<Artin>& b) const{
+   //Init list
+  EDList list;
+  list.clear();
+  if(len>0){
+    for(size_t i=0;i<len;++i) list.push_front(-tab[i]);
+  }
+  if(b.len>0){
+    for(size_t i=0;i<b.len;++i) list.push_back(b.tab[i]);
+  }
+
+  bool handle_reduced;
+  int handles[4];
+  //p=handles[i] contains the position of the last occurence of sigma_i^e; p has the sign of e
+  //if we read a letter sigma_j^{+-1} with j<i then handles[i] is set to 0
+  do{
+    handle_reduced=false;
+    for(size_t i=1;i<4;++i) handles[i]=0;
+    uint16_t p=list.first();
+    do{
+      int v=list.get(p);
+      int av,sv;
+      if(v>0){av=v;sv=1;}
+      else{av=-v;sv=-1;}
+      for(size_t j=av+1;j<4;++j) handles[j]=0;
+      int& info=handles[av];
+      if(info*v>=0) info=sv*p;
+      else{
+	int16_t t=list.next(abs(info));
+	while(t!=p){
+	  int w=list.get(t);
+	  int aw,sw;
+	  if(w>0){aw=w;sw=1;}
+	  else{aw=-w;sw=-1;}
+	  if(aw==av+1){
+	    list.insert_before(t,sv*aw);
+	    list.set(t,sw*av);
+	    t=list.insert_after(t,-sv*aw);
+	  }
+	  t=list.next(t);
+	};
+	list.erase(p);
+	p=list.get_prev(abs(info));
+	list.erase(abs(info));
+	handle_reduced=true;
+	break;
+      }
+      p=list.next(p);
+    }while(p!=0);
+  }while(handle_reduced);
+  
+  for(size_t i=1;i<4;++i){
+    if(handles[i]!=0){
+      return false;
+    }
+  }
+  return true;
 }
 
 //***************

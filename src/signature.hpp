@@ -145,10 +145,10 @@ template<> class Signature<Artin>:public SignatureData{
 public:
   //! Information on how obtain the mimal signature from a current one
   struct Action{
-    bool apply_phi;
+    bool apply_inverse;
     bool apply_negation;
+    bool apply_phi;
   };
-
 #if STRANDS==3
   static const char nbgen=2;
 #elif STRANDS==4
@@ -175,6 +175,9 @@ public:
   //! \param i generator to apply
   //! If a braid b has Signature S then it can be decomposed as c*i where c has Signature S.father(i).
   Signature father(Generator i) const;
+
+  //! Return the inverse of the current signature
+  Signature inverse() const;
   
   //! Test if the SignatureData is minimal (in its orbit)
   bool is_minimal() const;
@@ -214,6 +217,7 @@ template<> class Signature<Dual>:public SignatureData{
 public:
   //! Information on how obtain the mimal signature from a current one
   struct Action{
+    bool inverse();
     int phi_degree;
   };
 #if STRANDS==3
@@ -241,7 +245,10 @@ public:
   //! \param i generator to apply
   //! If a braid b has Signature S then it can be decomposed as c*i where c has Signature S.father(i).
   Signature father(Generator i) const;
-  
+
+  //! Return the inverse of the current signature
+  Signature inverse() const;
+
   //! Test if the SignatureData is minimal (in its orbit)
   bool is_minimal() const;
   
@@ -281,8 +288,7 @@ template<Gen G> void load(int l,set<Signature<G>>& signatures);
 //! Determine which Signatures must be considered during the exploration of braids of length l+1
 //! \param src the input set of all signatures of current length l
 //! \param dst the output set, that will eventually contain all signatures of length l+1
-void next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst);
-void next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst);
+template<Gen G> void next_signatures(const set<Signature<G>>& src,set<Signature<G>>& dst);
 
 //********************
 //* Inline functions *
@@ -300,6 +306,7 @@ inline size_t
 SignatureData::braid_length() const{
   return length;
 }
+
 inline string
 SignatureData::csv() const{
   return display();
@@ -415,5 +422,25 @@ load(int l,set<Signature<G>>& signatures){
     signatures.emplace(s);
   }
 }
+
+template<Gen G> void
+next_signatures(const set<Signature<G>>& src,set<Signature<G>>& dst){
+  for(auto it=src.begin();it!=src.end();++it){
+    set<Signature<G>> orbit=it->orbit();
+    //cout<<"Orbit of "<<*it<<" : "<<orbit<<endl;
+    for(auto it2=orbit.begin();it2!=orbit.end();++it2){
+      for(Generator i=-Signature<G>::nbgen;i<=Signature<G>::nbgen;++i){
+	if(i!=0){
+	  Signature<G> son=it2->son(i);
+	  if(son.is_minimal()){
+	    dst.insert(son);
+	    //cout<<"Add "<<son<<endl;
+	  }
+	}
+      }
+    }
+  }
+}
+
 #endif
 

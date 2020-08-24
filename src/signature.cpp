@@ -144,7 +144,6 @@ SignatureData::operator<(const SignatureData& s) const{
   return false;
 }
 
-
 void
 SignatureData::update_interlacing_Artin(char* e,Permutation p,Generator i){
   char ai,si;
@@ -220,30 +219,73 @@ Signature<Artin>::father(Generator i) const{
   return res;
 }
 
+Signature<Artin>
+Signature<Artin>::inverse() const{
+  Signature<Artin> res;
+  Permutation p=permutation;
+  res.length=length;
+  res.permutation=p.inverse();
+  char tab_i[6]={1,2,3,1,1,2};
+  char tab_j[6]={2,3,4,4,3,4};
+  for(char k=0;k<6;++k){
+    char ind=p(tab_i[k])-1+4*(p(tab_j[k])-1);
+    switch(ind){
+    case 4:  //12->0+1*4
+    case 1:  //21->1+0*4
+      res.e[k]=-e12;
+      break;
+      case 8:  //13->0+2*4
+    case 2:  //31->2+0*4
+      res.e[k]=-e13;
+      break;
+    case 12: //14->0+3*4
+    case 3:  //41->3+0*4
+      res.e[k]=-e14;
+      break;
+    case 9:  //23->1+2*4
+    case 6:  //32->2+1*4
+      res.e[k]=-e23;
+      break;
+    case 13: //24->1+3*4
+    case 7:  //42->3+1*4
+      res.e[k]=-e24;
+      break;
+    case 14: //34->2+3*4
+    case 11: //43->3+2*4
+      res.e[k]=-e34;
+      break;
+    default:
+      assert(false);
+      break;
+    };
+  }
+  return res;
+}
+
 pair<Signature<Artin>,Signature<Artin>::Action>
 Signature<Artin>::minimize() const{
   pair<Signature<Artin>,Signature<Artin>::Action> res;
-  Signature<Artin> p=phi();
-  Signature<Artin> n=negate();
-  Signature<Artin> np=p.negate();
-  res.first=*this;
-  res.second.apply_phi=false;
-  res.second.apply_negation=false;
-  if(p<res.first){
-    res.first=p;
-    res.second.apply_phi=true;
-    res.second.apply_negation=false;
+  Signature<Artin> orb[8];
+  orb[0]=*this;
+  orb[1]=orb[0].inverse();
+  orb[2]=orb[0].negate();
+  orb[3]=orb[1].negate();
+  orb[4]=orb[0].phi();
+  orb[5]=orb[1].phi();
+  orb[6]=orb[2].phi();
+  orb[7]=orb[3].phi();
+  Signature<Artin> red=orb[0];
+  size_t ired=0;
+  for(size_t i=1;i<8;++i){
+    if(orb[i]<red){
+      red=orb[i];
+      ired=i;
+    }
   }
-  if(n<res.first){
-    res.first=n;
-    res.second.apply_phi=false;
-    res.second.apply_negation=true;
-  }
-  if(np<res.first){
-    res.first=np;
-    res.second.apply_phi=true;
-    res.second.apply_negation=true;
-  }
+  res.first=red;
+  res.second.apply_inverse=(ired&1);
+  res.second.apply_negation=(ired&2);
+  res.second.apply_phi=(ired&4);
   return res;
 }
 
@@ -263,10 +305,17 @@ set<Signature<Artin>>
 Signature<Artin>::orbit() const{
   set<Signature<Artin>> res;
   res.insert(*this);
+  Signature<Artin> i=inverse();
+  Signature<Artin> n=negate();
   Signature<Artin> p=phi();
+  Signature<Artin> in=i.negate();
+  res.insert(i);
+  res.insert(n);
   res.insert(p);
-  res.insert(negate());
-  res.insert(p.negate());
+  res.insert(in);
+  res.insert(i.phi());
+  res.insert(n.phi());
+  res.insert(in.phi());    
   return res;
 }
 
@@ -444,41 +493,4 @@ Signature<Dual>::son(Generator i) const{
 // Other functions
 //-----------------
 
-void
-next_signatures(const set<Signature<Artin>>& src,set<Signature<Artin>>& dst){
-  cout<<"Next signatures"<<endl;
-  for(auto it=src.begin();it!=src.end();++it){
-    Signature<Artin> s=*it;
-    Signature<Artin> s_phi=s.phi();
-    Signature<Artin> s_neg=s.negate();
-    Signature<Artin> s_phi_neg=s_phi.negate();
-    for(Generator i=-Signature<Artin>::nbgen;i<=Signature<Artin>::nbgen;++i){
-      if(i!=0){
-	Signature<Artin> son=s.son(i);
-	if(son.is_minimal()) dst.insert(son);
-	son=s_phi.son(i);
-	if(son.is_minimal()) dst.insert(son);
-	son=s_neg.son(i);
-	if(son.is_minimal()) dst.insert(son);
-	son=s_phi_neg.son(i);
-	if(son.is_minimal()) dst.insert(son);
-      }
-    }
-  }
-}
 
-void
-next_signatures(const set<Signature<Dual>>& src,set<Signature<Dual>>& dst){
-  for(auto it=src.begin();it!=src.end();++it){
-    set<Signature<Dual>> orbit=it->orbit();
-    //cout<<orbit<<endl;
-    for(auto it2=orbit.begin();it2!=orbit.end();++it2){
-      for(Generator i=-Signature<Dual>::nbgen;i<=Signature<Dual>::nbgen;++i){
-	if(i!=0){
-	  Signature<Dual> son=it2->son(i);
-	  if(son.is_minimal()) dst.insert(son);
-	}
-      }
-    }
-  }
-}
