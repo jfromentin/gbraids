@@ -60,6 +60,7 @@ l | numbers of braids | number of geodesic words
 12|844277874          |454136092148
 13|4095929948         |3895624824092
 14|19858981932        |33359143410468
+15|96242356958        |285259736104444
 
 Note that a typo for l = 7 appears in [1], the correct value is 307 756 as in the previous table.
 We thank M. Bousquet-Mélou to point out this typo. 
