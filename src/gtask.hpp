@@ -1,5 +1,6 @@
 #include <set>
 #include <algorithm>
+#include <cstdint>
 #include "../dist/task.hpp"
 #include "signature.hpp"
 

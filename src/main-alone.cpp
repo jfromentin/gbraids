@@ -23,7 +23,7 @@ int main(int argc,char** argv){
   cout<<"Cur "<<cur<<endl;
   //exit(0);
 
-  for(char l=2;l<=25;++l){
+  for(char l=2;l<=10;++l){
     
     cur.clear();
     cout<<"------------------------"<<endl;
@@ -43,7 +43,7 @@ int main(int argc,char** argv){
       if(res.first!=0) file<<it->csv()<<','<<rank<<','<<res.first<<','<<res.second<<endl;
     }
     file.close();
-    file_bilan<<l<<','<<cur.size()<<','<<nb<<','<<ns<<','<<ng<<endl;
+    file_bilan<<(int)l<<','<<cur.size()<<','<<nb<<','<<ns<<','<<ng<<endl;
     cout<<"-> "<<ns<<" braids"<<endl;
     cout<<"-> "<<ng<<" geodesics"<<endl;
     swap(cur,prec);
