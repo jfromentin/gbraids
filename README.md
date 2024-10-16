@@ -12,7 +12,7 @@ DOI:https://doi.org/10.1016/j.jalgebra.2021.04.040
 Results
 =======
 
-Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Artin's generators. A CSV files with more stats is available in **results** directory.
+Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Artin's generators. A CSV files with more stats is available here https://github.com/jfromentin/gbraids/blob/master/results/artin_4_25.csv
 
 l | numbers of braids | number of geodesic words
 --|-------------------|--------------------------
