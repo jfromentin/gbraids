@@ -10,7 +10,7 @@ The desciption of the algorithm and its math is given in [1]
 Results
 =======
 
-Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Artin's generators. A CSV files with more stats is available here https://github.com/jfromentin/gbraids/blob/master/results/artin_4_25.csv
+Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Artin's generators. A CSV files with more stats is available here https://github.com/jfromentin/gbraids/blob/master/results/artin_4.csv
 
 l | numbers of braids | number of geodesic words
 --|-------------------|--------------------------
@@ -41,7 +41,7 @@ l | numbers of braids | number of geodesic words
 24|1639548505920      |1379691672165334
 25|4911638066620      |5559241797216166
 
-Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Birman--Ko--Lee's generators. A CSV files with more stats is available here https://github.com/jfromentin/gbraids/blob/master/results/dual_4_14.csv
+Below is the table of the first terms of the sherical and geodesical series of $B_4$ with respect to Birman--Ko--Lee's generators. A CSV files with more stats is available here https://github.com/jfromentin/gbraids/blob/master/results/dual_4.csv
 
 l | numbers of braids | number of geodesic words
 --|-------------------|--------------------------
@@ -61,6 +61,9 @@ l | numbers of braids | number of geodesic words
 13|4095929948         |3895624824092
 14|19858981932        |33359143410468
 15|96242356958        |285259736104444
+16|466262144180       |2436488694821748
+17|2258320991652      |20790986096580060
+
 
 Note that a typo for l = 7 appears in [1], the correct value is 307 756 as in the previous table.
 We thank M. Bousquet-Mélou to point out this typo. 
