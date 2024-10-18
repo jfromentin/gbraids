@@ -3,7 +3,7 @@ EXE_S 		= gb-server
 EXE_I 		= gb-interface
 EXE_A   	= gb-alone
 CPP 		= g++ 
-CFLAGS		= --std=c++11 -O3 -DNDEBUG
+CFLAGS		= --std=c++11 -O3 -DNDEBUG -g
 
 all: $(EXE_S) $(EXE_W) $(EXE_I) $(EXE_A)
 
@@ -54,4 +54,4 @@ $(EXE_A):src/init.o src/braid.o src/dynnikov.o src/signature.o src/main-alone.cp
 
 
 clean:
-	$(RM) -rf $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A)  data/* dist/*.o dist/*~ src/*.o src/*~
+	$(RM) -rf $(EXE_W) $(EXE_S) $(EXE_I) $(EXE_A)  dist/*.o dist/*~ src/*.o src/*~

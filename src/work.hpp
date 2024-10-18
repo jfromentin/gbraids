@@ -94,7 +94,7 @@ output(const Signature<G>& s,const T& braids){
   fstream file;
   char l=s.braid_length();
   s.makedir();
-  file.open(DATA_DIR+filename.c_str(),ios::out|ios::app);
+  file.open(DATA_DIR+filename.c_str(),ios::out|ios::trunc);
   for(auto it=braids.begin();it!=braids.end();++it){
     if(it->length()==l){
       it->write(file);
