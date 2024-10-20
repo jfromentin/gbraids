@@ -63,6 +63,7 @@ l | numbers of braids | number of geodesic words
 15|96242356958        |285259736104444
 16|466262144180       |2436488694821748
 17|2258320991652      |20790986096580060
+18|10936045294890     |177273722191508260
 
 
 Note that a typo for l = 7 appears in [1], the correct value is 307 756 as in the previous table.
@@ -72,4 +73,4 @@ Reference
 =========
 
 [1] Jean Fromentin. 2022. Experiments on growth series of braid groups. Journal of Algebra 607 (2022), 232-259.
-DOI:https://doi.org/10.1016/j.jalgebra.2021.04.040
+DOI:https://doi.org/10.1016/j.jalgebra.2021.04.040  
